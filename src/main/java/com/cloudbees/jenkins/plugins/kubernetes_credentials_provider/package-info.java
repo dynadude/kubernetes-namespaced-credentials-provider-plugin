@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 /**
- * Code for the Kubernetes Credential Provider 
+ * Code for the Kubernetes Credential Provider
  */
 @edu.umd.cs.findbugs.annotations.ReturnValuesAreNonnullByDefault
 @edu.umd.cs.findbugs.annotations.DefaultAnnotation(edu.umd.cs.findbugs.annotations.NonNull.class)
