@@ -91,10 +91,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
                 .done()
                 .once();
 
-        KubernetesCredentialProvider provider =
-                new KubernetesNamespacedCredentialsProvider.KubernetesSingleNamespacedCredentialsProvider("test");
-
-        provider.startWatchingForSecrets();
+        String[] namespaces = {"test"};
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
 
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
