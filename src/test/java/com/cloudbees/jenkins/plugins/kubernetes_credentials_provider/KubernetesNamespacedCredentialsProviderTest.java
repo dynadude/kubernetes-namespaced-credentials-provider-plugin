@@ -2,25 +2,20 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import static org.junit.Assert.*;
 
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.ExtensionList;
-import hudson.model.AdministrativeMonitor;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
-import jenkins.model.Jenkins;
 import jenkins.util.Timer;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,24 +34,6 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
     private @Mock MockedStatic<Timer> timer;
-
-    @Before
-    public void setUp() {
-        // mocked to validate add/remove of administrative errors
-        ExtensionList<AdministrativeMonitor> monitors =
-                ExtensionList.create((Jenkins) null, AdministrativeMonitor.class);
-        // mocked to validate start watching for secrets
-        ExtensionList<SecretToCredentialConverter> converters =
-                ExtensionList.create((Jenkins) null, SecretToCredentialConverter.class);
-        converters.addAll(Collections.singleton(new UsernamePasswordCredentialsConvertor()));
-        extensionList
-                .when(() -> ExtensionList.lookup(AdministrativeMonitor.class))
-                .thenReturn(monitors);
-        extensionList
-                .when(() -> ExtensionList.lookup(SecretToCredentialConverter.class))
-                .thenReturn(converters);
-        timer.when(Timer::get).thenReturn(jenkinsTimer);
-    }
 
     @Test
     public void startWatchingForSecrets() {
