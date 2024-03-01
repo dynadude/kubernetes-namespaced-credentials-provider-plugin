@@ -5,35 +5,19 @@ import static org.junit.Assert.*;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-import hudson.ExtensionList;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import io.fabric8.kubernetes.api.model.*;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
-import jenkins.util.Timer;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Answers;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesNamespacedCredentialsProviderTest {
-
-    private static final Long EVENT_WAIT_PERIOD_MS = 10L;
-
-    public @Rule KubernetesServer server = new KubernetesServer();
-    private @Mock ScheduledExecutorService jenkinsTimer;
-
-    private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
-    private @Mock MockedStatic<Timer> timer;
 
     @Test
     public void startWatchingForSecrets() {
