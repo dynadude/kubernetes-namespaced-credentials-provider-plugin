@@ -27,6 +27,7 @@ import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
@@ -52,7 +53,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     }
 
     public String[] getNamespaces() {
-        return (String[]) providers.keySet().toArray();
+        return providers.keySet().toArray(new String[] {});
     }
 
     public void setNamespaces(String[] namespaces) {
@@ -99,6 +100,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     static class KubernetesSingleNamespacedCredentialsProvider extends KubernetesCredentialProvider {
         private String namespace;
+
+        @Nullable
         private KubernetesClient client = null;
 
         KubernetesSingleNamespacedCredentialsProvider(String namespace) {
