@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Copyright © 2018 CloudBees, Inc.
 
@@ -20,7 +20,6 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -42,21 +41,6 @@
 
   <inceptionYear>2018</inceptionYear>
 
-  <properties>
-    <revision>1</revision>
-    <changelist>999999-SNAPSHOT</changelist>
-    <jenkins.version>2.414.1</jenkins.version>
-    <bom>2.414.x</bom>
-    <junit5.version>5.10.0</junit5.version>
-  </properties>
-
-  <scm>
-    <connection>scm:git:https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:dynadude/kubernetes-namespaced-credentials-provider-plugin.git</developerConnection>
-    <url>https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin</url>
-    <tag>${scmTag}</tag>
-  </scm>
-
   <licenses>
     <license>
       <name>MIT License</name>
@@ -71,29 +55,44 @@
     </developer>
   </developers>
 
+  <scm>
+    <connection>scm:git:https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:dynadude/kubernetes-namespaced-credentials-provider-plugin.git</developerConnection>
+    <tag>${scmTag}</tag>
+    <url>https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin</url>
+  </scm>
+
+  <properties>
+    <revision>1</revision>
+    <changelist>999999-SNAPSHOT</changelist>
+    <jenkins.version>2.414.1</jenkins.version>
+    <bom>2.414.x</bom>
+    <junit5.version>5.10.0</junit5.version>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-${bom}</artifactId>
-        <version>2401.v7a_d68f8d0b_09</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
       <dependency>
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp-bom</artifactId>
         <!-- needs to be aligned with the version of okhttp-api in the plugin bom -->
         <version>4.11.0</version>
-        <scope>import</scope>
         <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-${bom}</artifactId>
+        <version>2401.v7a_d68f8d0b_09</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-bom</artifactId>
         <version>1.9.10</version>
-        <scope>import</scope>
         <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.cloudbees.jenkins.plugins</groupId>
@@ -108,15 +107,47 @@
       <groupId>com.cloudbees.jenkins.plugins</groupId>
       <artifactId>kubernetes-credentials-provider</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-server-mock</artifactId>
+      <version>6.7.1</version>
+      <scope>test</scope>
+      <exclusions>
+        <!--
+          this dependency causes a build error on windows machines due to a bad system path reference in
+          the sundr-codegen pom. luckily the tests in this plugin don't require these dependencies.
+        -->
+        <exclusion>
+          <groupId>io.sundr</groupId>
+          <artifactId>builder-annotations</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- test deps -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <!-- Jenkins is not synced to central so we need to bootstrap -->
   <repositories>
     <repository>
-      <id>repo.jenkins-ci.org</id>
       <releases>
         <enabled>true</enabled>
       </releases>
+      <id>repo.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/public/</url>
     </repository>
   </repositories>
