@@ -1,6 +1,6 @@
 ---
 layout: default
-title:  "Kubernetes Credentials Provider Plugin: Development"
+title:  "Kubernetes Namespaced Credentials Provider Plugin: Development"
 permalink: /dev/
 ---
 

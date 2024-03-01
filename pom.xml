@@ -32,13 +32,13 @@
   </parent>
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
-  <artifactId>kubernetes-credentials-provider</artifactId>
+  <artifactId>kubernetes-namespaced-credentials-provider</artifactId>
   <version>${revision}.${changelist}</version>
   <packaging>hpi</packaging>
 
-  <name>Kubernetes Credentials Provider</name>
-  <description>Provides a credentials store backed by Kubernetes.</description>
-  <url>https://jenkinsci.github.io/kubernetes-credentials-provider-plugin/</url>
+  <name>Kubernetes Namespaced Credentials Provider</name>
+  <description>Provides a credentials store backed by Kubernetes (which allows for multiple namespaces).</description>
+  <url>https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin</url>
 
   <inceptionYear>2018</inceptionYear>
 
@@ -51,9 +51,9 @@
   </properties>
 
   <scm>
-    <connection>scm:git:https://github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/kubernetes-credentials-provider-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/kubernetes-credentials-provider-plugin</url>
+    <connection>scm:git:https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:dynadude/kubernetes-namespaced-credentials-provider-plugin.git</developerConnection>
+    <url>https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin</url>
     <tag>${scmTag}</tag>
   </scm>
 

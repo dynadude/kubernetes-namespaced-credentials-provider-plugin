@@ -1,6 +1,6 @@
 ---
 layout: default
-title:  "Kubernetes Credentials Provider Plugin : Examples"
+title:  "Kubernetes Namespaced Credentials Provider Plugin : Examples"
 permalink: /examples/
 ---
 
