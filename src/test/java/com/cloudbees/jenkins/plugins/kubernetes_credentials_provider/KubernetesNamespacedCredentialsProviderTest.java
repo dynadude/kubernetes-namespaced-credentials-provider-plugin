@@ -63,8 +63,27 @@ public class KubernetesNamespacedCredentialsProviderTest {
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", 0, credentials.size());
-        assertFalse("secret s1 exists", credentials.stream().anyMatch(c -> "s1"
-                .equals(((UsernamePasswordCredentialsImpl) c).getId())));
+        assertFalse("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
+    }
+
+    @Test
+    public void oneNamespace() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
+        KubernetesNamespacedCredentialsProvider provider =
+                new KubernetesNamespacedCredentialsProvider(new String[] {namespaces[0]});
+
+        Secret s1 = createSecret("s1", (CredentialsScope) null, namespaces[0]);
+
+        List<UsernamePasswordCredentials> credentials =
+                provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
+        assertEquals("credentials", 0, credentials.size());
+        assertFalse("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
+
+        addSecretToProvider(s1, namespaces[0], provider);
+
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
+
+        assertEquals("credentials", 1, credentials.size());
+        assertTrue("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
     }
 
     @Test
@@ -83,10 +102,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", 3, credentials.size());
-        assertTrue("secret s1 exists", credentials.stream().anyMatch(c -> "s1"
-                .equals(((UsernamePasswordCredentialsImpl) c).getId())));
-        assertTrue("secret s3 exists", credentials.stream().anyMatch(c -> "s3"
-                .equals(((UsernamePasswordCredentialsImpl) c).getId())));
+        assertTrue("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
+        assertTrue("secret s3 exists", doesSecretExistInCredentials("s3", credentials));
     }
 
     private void addSecretToProvider(Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
@@ -162,5 +179,9 @@ public class KubernetesNamespacedCredentialsProviderTest {
                 .addToData("username", "bXlVc2VybmFtZQ==")
                 .addToData("password", "UGEkJHdvcmQ=")
                 .build();
+    }
+
+    private boolean doesSecretExistInCredentials(String secretName, List<UsernamePasswordCredentials> credentials) {
+        return credentials.stream().anyMatch(c -> secretName.equals(((UsernamePasswordCredentialsImpl) c).getId()));
     }
 }
