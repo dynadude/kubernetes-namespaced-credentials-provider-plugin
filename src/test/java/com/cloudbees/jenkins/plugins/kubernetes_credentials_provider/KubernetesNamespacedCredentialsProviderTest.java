@@ -21,7 +21,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import jenkins.model.Jenkins;
-import jenkins.util.Timer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +36,6 @@ public class KubernetesNamespacedCredentialsProviderTest {
     private @Mock ScheduledExecutorService jenkinsTimer;
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
-    private @Mock MockedStatic<Timer> timer;
 
     @Before
     public void setUp() {
@@ -48,7 +46,6 @@ public class KubernetesNamespacedCredentialsProviderTest {
         extensionList
                 .when(() -> ExtensionList.lookup(SecretToCredentialConverter.class))
                 .thenReturn(converters);
-        timer.when(Timer::get).thenReturn(jenkinsTimer);
     }
 
     @Test
