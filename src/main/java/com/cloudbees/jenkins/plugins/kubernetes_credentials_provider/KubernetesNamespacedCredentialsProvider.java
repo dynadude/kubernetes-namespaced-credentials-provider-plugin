@@ -73,7 +73,10 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             Class<C> type, ItemGroup itemGroup, Authentication authentication) {
         List<C> allCredentials = new ArrayList<C>();
 
-        for (KubernetesCredentialProvider provider : providers.values()) {
+        for (Map.Entry<String, KubernetesCredentialProvider> entry : providers.entrySet()) {
+            String namespace = entry.getKey();
+            CredentialsProvider provider = entry.getValue();
+
             List<C> credsFromProvider = provider.getCredentials(type, itemGroup, authentication);
             allCredentials.addAll(credsFromProvider);
         }
