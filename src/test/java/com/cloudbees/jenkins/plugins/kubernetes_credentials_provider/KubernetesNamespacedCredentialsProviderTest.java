@@ -49,7 +49,26 @@ public class KubernetesNamespacedCredentialsProviderTest {
     }
 
     @Test
-    public void startWatchingForSecrets()
+    public void noNamespaces() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
+
+        Secret s1 = createSecret("s1", (CredentialsScope) null, namespaces[0]);
+
+        try {
+            addSecretToProvider(s1, namespaces[0], provider);
+            throw new Exception("addSecretToProvider shouldn't work with a namespace that does not exist");
+        } catch (NoSuchNamespaceException e) {
+        }
+
+        List<UsernamePasswordCredentials> credentials =
+                provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
+        assertEquals("credentials", 0, credentials.size());
+        assertFalse("secret s1 exists", credentials.stream().anyMatch(c -> "s1"
+                .equals(((UsernamePasswordCredentialsImpl) c).getId())));
+    }
+
+    @Test
+    public void allNamespaces()
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
 
