@@ -2,12 +2,16 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import static org.junit.Assert.*;
 
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesNamespacedCredentialsProvider.KubernetesSingleNamespacedCredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.client.Watcher.Action;
+import java.io.InvalidObjectException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -18,42 +22,20 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesNamespacedCredentialsProviderTest {
+    private static final String[] namespaces = {"test1", "test2", "test3"};
 
     @Test
-    public void startWatchingForSecrets() {
-        Secret s1 = createSecret("s1", (CredentialsScope) null);
-        Secret s2 = createSecret("s2", (CredentialsScope) null);
-        Secret s3 = createSecret("s3", (CredentialsScope) null);
-
-        // returns s1 and s3, the credentials map should be reset to this list
-        server.expect()
-                .withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
-                .andReturn(
-                        200,
-                        new SecretListBuilder()
-                                .withNewMetadata()
-                                .withResourceVersion("1")
-                                .endMetadata()
-                                .addToItems(s1, s3)
-                                .build())
-                .once();
-
-        // expect the s2 will get dropped when the credentials map is reset to the full
-        // list
-        server.expect()
-                .withPath(
-                        "/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&allowWatchBookmarks=true&watch=true")
-                .andUpgradeToWebSocket()
-                .open()
-                .waitFor(EVENT_WAIT_PERIOD_MS)
-                .andEmit(new WatchEvent(s1, "ADDED"))
-                .waitFor(EVENT_WAIT_PERIOD_MS)
-                .andEmit(new WatchEvent(s2, "ADDED"))
-                .done()
-                .once();
-
-        String[] namespaces = {"test"};
+    public void startWatchingForSecrets()
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
+
+        Secret s1 = createSecret("s1", (CredentialsScope) null, namespaces[0]);
+        Secret s2 = createSecret("s2", (CredentialsScope) null, namespaces[1]);
+        Secret s3 = createSecret("s3", (CredentialsScope) null, namespaces[2]);
+
+        addSecretToProvider(s1, namespaces[0], provider);
+        addSecretToProvider(s2, namespaces[1], provider);
+        addSecretToProvider(s3, namespaces[2], provider);
 
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
@@ -64,24 +46,72 @@ public class KubernetesNamespacedCredentialsProviderTest {
                 .equals(((UsernamePasswordCredentialsImpl) c).getId())));
     }
 
-    private Secret createSecret(String name, CredentialsScope scope) {
+    private void addSecretToProvider(Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+
+        Map<String, KubernetesSingleNamespacedCredentialsProvider> providers = getProviders(provider);
+
+        KubernetesSingleNamespacedCredentialsProvider innerProvider = providers.get(namespace);
+        if (innerProvider == null) {
+            throw new NoSuchNamespaceException(
+                    "namespace " + namespace + " was not found in the KubernetesNamespacedCredentialsProvider object");
+        }
+
+        innerProvider.eventReceived(Action.ADDED, secret);
+    }
+
+    private Map<String, KubernetesSingleNamespacedCredentialsProvider> getProviders(
+            KubernetesNamespacedCredentialsProvider provider)
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException {
+        Field providersField = KubernetesNamespacedCredentialsProvider.class.getDeclaredField("providers");
+
+        // Set the accessibility as true
+        providersField.setAccessible(true);
+
+        Object providersObject = null;
+        try {
+            providersObject = providersField.get(provider);
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessException(
+                    "The 'providers' field of KubernetesNamespacedCredentialsProvider is not correctly set to accessible");
+        }
+
+        if (!(providersObject instanceof Map<?, ?>)) {
+            throw new InvalidObjectException(
+                    "The 'providers' field of KubernetesNamespacedCredentialsProvider is not of type Map");
+        }
+
+        Map<String, KubernetesSingleNamespacedCredentialsProvider> providers =
+                (Map<String, KubernetesSingleNamespacedCredentialsProvider>) providersObject;
+
+        providersField.setAccessible(false);
+
+        return providers;
+    }
+
+    private Secret createSecret(String name, CredentialsScope scope, String namespace) {
         Map<String, String> labels = Map.of(
                 "jenkins.io/credentials-scope",
                 scope == null ? "global" : scope.name().toLowerCase(Locale.ROOT));
-        return createSecret(name, labels);
+        return createSecret(name, labels, namespace);
     }
 
-    private Secret createSecret(String name, Map<String, String> labels) {
+    private Secret createSecret(String name, Map<String, String> labels, String namespace) {
         return createSecret(name, labels, Map.of());
     }
 
     private Secret createSecret(String name, Map<String, String> labels, Map<String, String> annotations) {
+        return createSecret(name, labels, annotations, "test");
+    }
+
+    private Secret createSecret(
+            String name, Map<String, String> labels, Map<String, String> annotations, String namespace) {
         Map<String, String> labelsCopy = new HashMap<>(labels);
         labelsCopy.put("jenkins.io/credentials-type", "usernamePassword");
 
         return new SecretBuilder()
                 .withNewMetadata()
-                .withNamespace("test")
+                .withNamespace(namespace)
                 .withName(name)
                 .addToLabels(labelsCopy)
                 .addToAnnotations(annotations)
