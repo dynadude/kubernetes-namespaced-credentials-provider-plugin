@@ -63,7 +63,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 2, credentials.size());
+        assertEquals("credentials", 3, credentials.size());
         assertTrue("secret s1 exists", credentials.stream().anyMatch(c -> "s1"
                 .equals(((UsernamePasswordCredentialsImpl) c).getId())));
         assertTrue("secret s3 exists", credentials.stream().anyMatch(c -> "s3"
