@@ -32,6 +32,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesNamespacedCredentialsProviderTest {
     private static final String[] namespaces = {"test1", "test2", "test3"};
+    private static final Secret[] secrets = new Secret[] {
+        createSecret("s1", (CredentialsScope) null, namespaces[0]),
+        createSecret("s2", (CredentialsScope) null, namespaces[1]),
+        createSecret("s3", (CredentialsScope) null, namespaces[2])
+    };
 
     private @Mock ScheduledExecutorService jenkinsTimer;
 
@@ -52,10 +57,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
     public void noNamespaces() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
 
-        Secret s1 = createSecret("s1", (CredentialsScope) null, namespaces[0]);
-
         try {
-            addSecretToProvider(s1, namespaces[0], provider);
+            addSecretToProvider(secrets[0], namespaces[0], provider);
             throw new Exception("addSecretToProvider shouldn't work with a namespace that does not exist");
         } catch (NoSuchNamespaceException e) {
         }
@@ -71,14 +74,12 @@ public class KubernetesNamespacedCredentialsProviderTest {
         KubernetesNamespacedCredentialsProvider provider =
                 new KubernetesNamespacedCredentialsProvider(new String[] {namespaces[0]});
 
-        Secret s1 = createSecret("s1", (CredentialsScope) null, namespaces[0]);
-
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", 0, credentials.size());
         assertFalse("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
 
-        addSecretToProvider(s1, namespaces[0], provider);
+        addSecretToProvider(secrets[0], namespaces[0], provider);
 
         credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
 
@@ -91,18 +92,15 @@ public class KubernetesNamespacedCredentialsProviderTest {
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
 
-        Secret s1 = createSecret("s1", (CredentialsScope) null, namespaces[0]);
-        Secret s2 = createSecret("s2", (CredentialsScope) null, namespaces[1]);
-        Secret s3 = createSecret("s3", (CredentialsScope) null, namespaces[2]);
-
-        addSecretToProvider(s1, namespaces[0], provider);
-        addSecretToProvider(s2, namespaces[1], provider);
-        addSecretToProvider(s3, namespaces[2], provider);
+        addSecretToProvider(secrets[0], namespaces[0], provider);
+        addSecretToProvider(secrets[1], namespaces[1], provider);
+        addSecretToProvider(secrets[2], namespaces[2], provider);
 
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", 3, credentials.size());
         assertTrue("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
+        assertTrue("secret s2 exists", doesSecretExistInCredentials("s2", credentials));
         assertTrue("secret s3 exists", doesSecretExistInCredentials("s3", credentials));
     }
 
@@ -149,22 +147,22 @@ public class KubernetesNamespacedCredentialsProviderTest {
         return providers;
     }
 
-    private Secret createSecret(String name, CredentialsScope scope, String namespace) {
+    private static Secret createSecret(String name, CredentialsScope scope, String namespace) {
         Map<String, String> labels = Map.of(
                 "jenkins.io/credentials-scope",
                 scope == null ? "global" : scope.name().toLowerCase(Locale.ROOT));
         return createSecret(name, labels, namespace);
     }
 
-    private Secret createSecret(String name, Map<String, String> labels, String namespace) {
+    private static Secret createSecret(String name, Map<String, String> labels, String namespace) {
         return createSecret(name, labels, Map.of());
     }
 
-    private Secret createSecret(String name, Map<String, String> labels, Map<String, String> annotations) {
+    private static Secret createSecret(String name, Map<String, String> labels, Map<String, String> annotations) {
         return createSecret(name, labels, annotations, "test");
     }
 
-    private Secret createSecret(
+    private static Secret createSecret(
             String name, Map<String, String> labels, Map<String, String> annotations, String namespace) {
         Map<String, String> labelsCopy = new HashMap<>(labels);
         labelsCopy.put("jenkins.io/credentials-type", "usernamePassword");
