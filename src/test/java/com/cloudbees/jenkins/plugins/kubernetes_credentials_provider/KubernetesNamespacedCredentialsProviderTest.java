@@ -32,12 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesNamespacedCredentialsProviderTest {
     private static final String[] namespaces = {"test1", "test2", "test3"};
-    private static final Secret[] secrets = new Secret[] {
-        createSecret("s1", (CredentialsScope) null, namespaces[0]),
-        createSecret("s2", (CredentialsScope) null, namespaces[1]),
-        createSecret("s3", (CredentialsScope) null, namespaces[2])
-    };
-
     private @Mock ScheduledExecutorService jenkinsTimer;
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
@@ -56,6 +50,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
     @Test
     public void noNamespaces() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
+        Secret[] secrets = getSecrets();
 
         try {
             addSecretToProvider(secrets[0], namespaces[0], provider);
@@ -66,31 +61,33 @@ public class KubernetesNamespacedCredentialsProviderTest {
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", 0, credentials.size());
-        assertFalse("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
+        assertFalse("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
     }
 
     @Test
     public void oneNamespace() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
         KubernetesNamespacedCredentialsProvider provider =
                 new KubernetesNamespacedCredentialsProvider(new String[] {namespaces[0]});
+        Secret[] secrets = getSecrets();
 
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", 0, credentials.size());
-        assertFalse("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
+        assertFalse("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
 
         addSecretToProvider(secrets[0], namespaces[0], provider);
 
         credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
 
         assertEquals("credentials", 1, credentials.size());
-        assertTrue("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
+        assertTrue("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
     }
 
     @Test
     public void allNamespaces()
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
+        Secret[] secrets = getSecrets();
 
         addSecretToProvider(secrets[0], namespaces[0], provider);
         addSecretToProvider(secrets[1], namespaces[1], provider);
@@ -99,9 +96,9 @@ public class KubernetesNamespacedCredentialsProviderTest {
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", 3, credentials.size());
-        assertTrue("secret s1 exists", doesSecretExistInCredentials("s1", credentials));
-        assertTrue("secret s2 exists", doesSecretExistInCredentials("s2", credentials));
-        assertTrue("secret s3 exists", doesSecretExistInCredentials("s3", credentials));
+        assertTrue("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
+        assertTrue("secret s2 exists", doesSecretExistInCredentials(namespaces[1] + '_' + "s2", credentials));
+        assertTrue("secret s3 exists", doesSecretExistInCredentials(namespaces[2] + '_' + "s3", credentials));
     }
 
     private void addSecretToProvider(Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
@@ -118,12 +115,19 @@ public class KubernetesNamespacedCredentialsProviderTest {
         innerProvider.eventReceived(Action.ADDED, secret);
     }
 
+    private Secret[] getSecrets() {
+        return new Secret[] {
+            createSecret("s1", (CredentialsScope) null, namespaces[0]),
+            createSecret("s2", (CredentialsScope) null, namespaces[1]),
+            createSecret("s3", (CredentialsScope) null, namespaces[2])
+        };
+    }
+
     private Map<String, KubernetesSingleNamespacedCredentialsProvider> getProviders(
             KubernetesNamespacedCredentialsProvider provider)
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException {
         Field providersField = KubernetesNamespacedCredentialsProvider.class.getDeclaredField("providers");
 
-        // Set the accessibility as true
         providersField.setAccessible(true);
 
         Object providersObject = null;
