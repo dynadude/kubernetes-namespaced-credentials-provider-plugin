@@ -25,12 +25,15 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -44,9 +47,17 @@ import org.acegisecurity.Authentication;
 @Extension
 public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider {
 
+    private String credNameSeparator = "_";
+
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
 
     public KubernetesNamespacedCredentialsProvider() {}
+
+    public KubernetesNamespacedCredentialsProvider(String[] namespaces, String credNameSeparator) {
+        this(namespaces);
+
+        this.credNameSeparator = credNameSeparator;
+    }
 
     public KubernetesNamespacedCredentialsProvider(String[] namespaces) {
         addNamespaces(namespaces);
@@ -64,7 +75,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private void addNamespaces(String[] namespaces) {
         for (String namespace : namespaces) {
-            providers.put(namespace, new KubernetesSingleNamespacedCredentialsProvider(namespace));
+            providers.put(namespace, new KubernetesSingleNamespacedCredentialsProvider(namespace, credNameSeparator));
         }
     }
 
@@ -73,10 +84,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             Class<C> type, ItemGroup itemGroup, Authentication authentication) {
         List<C> allCredentials = new ArrayList<C>();
 
-        for (Map.Entry<String, KubernetesCredentialProvider> entry : providers.entrySet()) {
-            String namespace = entry.getKey();
-            CredentialsProvider provider = entry.getValue();
-
+        for (CredentialsProvider provider : providers.values()) {
             List<C> credsFromProvider = provider.getCredentials(type, itemGroup, authentication);
             allCredentials.addAll(credsFromProvider);
         }
@@ -86,17 +94,13 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     @Override
     @NonNull
-    public <C extends Credentials> List<C> getCredentials(
-            @NonNull Class<C> type, @NonNull Item item, Authentication authentication) {
+    public <C extends Credentials> List<C> getCredentials(Class<C> type, Item item, Authentication authentication) {
         return getCredentials(type, item.getParent(), authentication);
     }
 
     @Override
     public <C extends Credentials> List<C> getCredentials(
-            @NonNull Class<C> type,
-            @NonNull Item item,
-            Authentication authentication,
-            List<DomainRequirement> domainRequirements) {
+            Class<C> type, Item item, Authentication authentication, List<DomainRequirement> domainRequirements) {
         // we do not support domain requirements
         return getCredentials(type, item, authentication);
     }
@@ -104,11 +108,15 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     static class KubernetesSingleNamespacedCredentialsProvider extends KubernetesCredentialProvider {
         private String namespace;
 
+        private String credNameSeparator;
+
         @Nullable
         private KubernetesClient client = null;
 
-        KubernetesSingleNamespacedCredentialsProvider(String namespace) {
+        KubernetesSingleNamespacedCredentialsProvider(String namespace, String credNameSeparator) {
             this.namespace = namespace;
+
+            this.credNameSeparator = credNameSeparator;
         }
 
         @Override
@@ -126,6 +134,19 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             }
 
             return client;
+        }
+
+        @Override
+        IdCredentials convertSecret(Secret s) {
+            addNamespaceNameToSecret(s, credNameSeparator);
+            return super.convertSecret(s);
+        }
+
+        private void addNamespaceNameToSecret(Secret s, String separator) {
+            ObjectMeta metadata = s.getMetadata();
+            String previousName = metadata.getName();
+
+            metadata.setName(namespace + separator + previousName);
         }
     }
 
