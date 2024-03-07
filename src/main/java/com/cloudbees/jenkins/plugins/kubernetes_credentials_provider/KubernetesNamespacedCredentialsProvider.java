@@ -134,15 +134,15 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
         @Override
         IdCredentials convertSecret(Secret s) {
-            addNamespaceNameToSecret(s, credNameSeparator);
+            addNamespaceNameToSecret(s);
             return super.convertSecret(s);
         }
 
-        private void addNamespaceNameToSecret(Secret s, char separator) {
+        private void addNamespaceNameToSecret(Secret s) {
             ObjectMeta metadata = s.getMetadata();
             String previousName = metadata.getName();
 
-            metadata.setName(namespace + separator + previousName);
+            metadata.setName(namespace + credNameSeparator + previousName);
         }
     }
 
