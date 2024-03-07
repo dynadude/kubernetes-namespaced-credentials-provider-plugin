@@ -53,12 +53,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     public KubernetesNamespacedCredentialsProvider() {}
 
-    public KubernetesNamespacedCredentialsProvider(String[] namespaces, String credNameSeparator) {
-        this(namespaces);
-
-        this.credNameSeparator = credNameSeparator;
-    }
-
     public KubernetesNamespacedCredentialsProvider(String[] namespaces) {
         addNamespaces(namespaces);
     }
