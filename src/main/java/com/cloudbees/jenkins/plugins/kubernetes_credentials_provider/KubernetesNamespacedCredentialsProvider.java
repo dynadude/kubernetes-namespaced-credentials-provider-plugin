@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.acegisecurity.Authentication;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 @Extension
 public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider {
@@ -53,6 +54,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     public KubernetesNamespacedCredentialsProvider() {}
 
+    @DataBoundConstructor
     public KubernetesNamespacedCredentialsProvider(String[] namespaces) {
         addNamespaces(namespaces);
     }
