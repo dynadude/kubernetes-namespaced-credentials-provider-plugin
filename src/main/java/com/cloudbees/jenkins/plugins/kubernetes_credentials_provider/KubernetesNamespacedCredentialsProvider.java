@@ -47,9 +47,9 @@ import org.acegisecurity.Authentication;
 @Extension
 public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider {
 
-    private String credNameSeparator = "_";
-
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
+
+    private String credNameSeparator = "_";
 
     public KubernetesNamespacedCredentialsProvider() {}
 
