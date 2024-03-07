@@ -50,7 +50,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
 
-    private String credNameSeparator = "_";
+    private static final char credNameSeparator = '_';
 
     public KubernetesNamespacedCredentialsProvider() {}
 
@@ -104,12 +104,12 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     static class KubernetesSingleNamespacedCredentialsProvider extends KubernetesCredentialProvider {
         private String namespace;
 
-        private String credNameSeparator;
+        private char credNameSeparator;
 
         @Nullable
         private KubernetesClient client = null;
 
-        KubernetesSingleNamespacedCredentialsProvider(String namespace, String credNameSeparator) {
+        KubernetesSingleNamespacedCredentialsProvider(String namespace, char credNameSeparator) {
             this.namespace = namespace;
 
             this.credNameSeparator = credNameSeparator;
@@ -138,7 +138,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             return super.convertSecret(s);
         }
 
-        private void addNamespaceNameToSecret(Secret s, String separator) {
+        private void addNamespaceNameToSecret(Secret s, char separator) {
             ObjectMeta metadata = s.getMetadata();
             String previousName = metadata.getName();
 
