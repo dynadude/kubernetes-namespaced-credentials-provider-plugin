@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesNamespacedCredentialsProvider.KubernetesSingleNamespacedCredentialsProvider;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.ExtensionList;
@@ -58,10 +60,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
         } catch (NoSuchNamespaceException e) {
         }
 
-        List<UsernamePasswordCredentials> credentials =
-                provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 0, credentials.size());
-        assertFalse("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
+        verifySecrets(new String[] {}, new Secret[] {}, provider);
     }
 
     @Test
@@ -70,17 +69,11 @@ public class KubernetesNamespacedCredentialsProviderTest {
                 new KubernetesNamespacedCredentialsProvider(new String[] {namespaces[0]});
         Secret[] secrets = getSecrets();
 
-        List<UsernamePasswordCredentials> credentials =
-                provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 0, credentials.size());
-        assertFalse("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
+        verifySecrets(new String[] {}, new Secret[] {}, provider);
 
         addSecretToProvider(secrets[0], namespaces[0], provider);
-
-        credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-
-        assertEquals("credentials", 1, credentials.size());
-        assertTrue("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
+        secrets = getSecrets();
+        verifySecrets(new String[] {namespaces[0]}, new Secret[] {secrets[0]}, provider);
     }
 
     @Test
@@ -93,12 +86,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
         addSecretToProvider(secrets[1], namespaces[1], provider);
         addSecretToProvider(secrets[2], namespaces[2], provider);
 
-        List<UsernamePasswordCredentials> credentials =
-                provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 3, credentials.size());
-        assertTrue("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
-        assertTrue("secret s2 exists", doesSecretExistInCredentials(namespaces[1] + '_' + "s2", credentials));
-        assertTrue("secret s3 exists", doesSecretExistInCredentials(namespaces[2] + '_' + "s3", credentials));
+        secrets = getSecrets();
+        verifySecrets(namespaces, secrets, provider);
     }
 
     private void addSecretToProvider(Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
@@ -117,32 +106,17 @@ public class KubernetesNamespacedCredentialsProviderTest {
         addSecretToProvider(secrets[1], namespaces[1], provider);
         addSecretToProvider(secrets[2], namespaces[2], provider);
 
-        List<UsernamePasswordCredentials> credentials =
-                provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 3, credentials.size());
-        assertTrue("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
-        assertTrue("secret s2 exists", doesSecretExistInCredentials(namespaces[1] + '_' + "s2", credentials));
-        assertTrue("secret s3 exists", doesSecretExistInCredentials(namespaces[2] + '_' + "s3", credentials));
+        secrets = getSecrets();
+        verifySecrets(namespaces, secrets, provider);
 
         secrets = getSecrets();
-
         removeSecretFromProvider(secrets[0], namespaces[0], provider);
-
-        credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 2, credentials.size());
-        assertFalse("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
-        assertTrue("secret s2 exists", doesSecretExistInCredentials(namespaces[1] + '_' + "s2", credentials));
-        assertTrue("secret s3 exists", doesSecretExistInCredentials(namespaces[2] + '_' + "s3", credentials));
+        verifySecrets(new String[] {namespaces[1], namespaces[2]}, new Secret[] {secrets[1], secrets[2]}, provider);
 
         secrets = getSecrets();
-
         removeSecretFromProvider(secrets[1], namespaces[1], provider);
-
-        credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 1, credentials.size());
-        assertFalse("secret s1 exists", doesSecretExistInCredentials(namespaces[0] + '_' + "s1", credentials));
-        assertFalse("secret s2 exists", doesSecretExistInCredentials(namespaces[1] + '_' + "s2", credentials));
-        assertTrue("secret s3 exists", doesSecretExistInCredentials(namespaces[2] + '_' + "s3", credentials));
+        secrets = getSecrets();
+        verifySecrets(new String[] {namespaces[2]}, new Secret[] {secrets[2]}, provider);
     }
 
     private void removeSecretFromProvider(
@@ -236,5 +210,24 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     private boolean doesSecretExistInCredentials(String secretName, List<UsernamePasswordCredentials> credentials) {
         return credentials.stream().anyMatch(c -> secretName.equals(((UsernamePasswordCredentialsImpl) c).getId()));
+    }
+
+    private void verifySecrets(String[] namespaces, Secret[] secrets, CredentialsProvider provider) {
+        List<UsernamePasswordCredentials> credentials =
+                provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
+        assertEquals("credentials", secrets.length, credentials.size());
+
+        for (UsernamePasswordCredentials cred : credentials) {
+            System.out.println(((IdCredentials) cred).getId());
+        }
+
+        for (int i = 0; i < secrets.length; i++) {
+            Secret secret = secrets[i];
+            String secretName = secret.getMetadata().getName();
+            String namespace = namespaces[i];
+            assertTrue(
+                    "secret " + secretName + " exists",
+                    doesSecretExistInCredentials(namespace + '_' + secretName, credentials));
+        }
     }
 }
