@@ -90,12 +90,6 @@ public class KubernetesNamespacedCredentialsProviderTest {
         verifySecrets(namespaces, secrets, provider);
     }
 
-    private void addSecretToProvider(Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
-            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
-
-        sendActionToProvider(Action.ADDED, secret, namespace, provider);
-    }
-
     @Test
     public void deleteSecrets()
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
@@ -117,6 +111,12 @@ public class KubernetesNamespacedCredentialsProviderTest {
         removeSecretFromProvider(secrets[1], namespaces[1], provider);
         secrets = getSecrets();
         verifySecrets(new String[] {namespaces[2]}, new Secret[] {secrets[2]}, provider);
+    }
+
+    private void addSecretToProvider(Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+
+        sendActionToProvider(Action.ADDED, secret, namespace, provider);
     }
 
     private void removeSecretFromProvider(
