@@ -39,14 +39,22 @@ import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
 import org.acegisecurity.Authentication;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 @Extension
 public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider {
+
+    private static final Logger LOG = Logger.getLogger(KubernetesNamespacedCredentialsProvider.class.getName());
+
+    private Set<String> namespaces = new HashSet<String>();
 
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
 
@@ -59,20 +67,32 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         addNamespaces(namespaces);
     }
 
-    public String[] getNamespaces() {
-        return providers.keySet().toArray(new String[] {});
+    public Set<String> getNamespaces() {
+        return Collections.unmodifiableSet(namespaces);
     }
 
     public void setNamespaces(String[] namespaces) {
         providers.clear();
+        this.namespaces = new HashSet<String>();
 
         addNamespaces(namespaces);
     }
 
     private void addNamespaces(String[] namespaces) {
         for (String namespace : namespaces) {
-            providers.put(namespace, new KubernetesSingleNamespacedCredentialsProvider(namespace, credNameSeparator));
+            if (this.namespaces.contains(namespace)) {
+                LOG.warning("Duplicate namespace detected: " + namespace + ". Ignoring...");
+                continue;
+            }
+
+            addNamespaceToProviders(namespace);
+
+            this.namespaces.add(namespace);
         }
+    }
+
+    private void addNamespaceToProviders(String namespace) {
+        providers.put(namespace, new KubernetesSingleNamespacedCredentialsProvider(namespace, credNameSeparator));
     }
 
     @Override
