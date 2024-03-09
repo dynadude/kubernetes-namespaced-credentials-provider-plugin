@@ -55,7 +55,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private static final Logger LOG = Logger.getLogger(KubernetesNamespacedCredentialsProvider.class.getName());
 
-    private Set<String> namespaces;
+    private Set<String> namespaces = new HashSet<String>();
 
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
 
