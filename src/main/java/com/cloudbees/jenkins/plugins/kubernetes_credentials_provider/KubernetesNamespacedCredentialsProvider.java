@@ -48,6 +48,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import org.acegisecurity.Authentication;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 @Extension
 public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider {
@@ -73,6 +74,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         return Collections.unmodifiableSet(namespaces);
     }
 
+    @DataBoundSetter
     public void setNamespaces(String[] namespaces) {
         providers.clear();
         resetNamespaces();
