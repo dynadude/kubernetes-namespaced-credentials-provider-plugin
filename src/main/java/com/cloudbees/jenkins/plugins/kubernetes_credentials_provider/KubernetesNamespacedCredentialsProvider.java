@@ -54,17 +54,19 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private static final Logger LOG = Logger.getLogger(KubernetesNamespacedCredentialsProvider.class.getName());
 
-    private Set<String> namespaces = new HashSet<String>();
+    private Set<String> namespaces;
 
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
 
     private static final char credNameSeparator = '_';
 
-    public KubernetesNamespacedCredentialsProvider() {}
+    public KubernetesNamespacedCredentialsProvider() {
+        this(new String[] {});
+    }
 
     @DataBoundConstructor
     public KubernetesNamespacedCredentialsProvider(String[] namespaces) {
-        addNamespaces(namespaces);
+        setNamespaces(namespaces);
     }
 
     public Set<String> getNamespaces() {
@@ -73,9 +75,13 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     public void setNamespaces(String[] namespaces) {
         providers.clear();
-        this.namespaces = new HashSet<String>();
+        resetNamespaces();
 
         addNamespaces(namespaces);
+    }
+
+    private void resetNamespaces() {
+        this.namespaces = new HashSet<String>();
     }
 
     private void addNamespaces(String[] namespaces) {
