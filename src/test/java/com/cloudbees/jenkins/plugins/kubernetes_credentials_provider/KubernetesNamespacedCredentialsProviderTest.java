@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import jenkins.model.Jenkins;
 import org.junit.Before;
@@ -138,6 +139,36 @@ public class KubernetesNamespacedCredentialsProviderTest {
         }
 
         innerProvider.eventReceived(action, secret);
+    }
+
+    @Test
+    public void setNamespacesAndGetNamespaces()
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
+
+        Set<String> namespaces = provider.getNamespaces();
+        assertEquals("no namespaces", 0, namespaces.size());
+
+        provider.setNamespaces(KubernetesNamespacedCredentialsProviderTest.namespaces);
+
+        namespaces = provider.getNamespaces();
+        assertEquals(
+                "three namespaces", KubernetesNamespacedCredentialsProviderTest.namespaces.length, namespaces.size());
+        assertTrue("first namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[0]));
+        assertTrue("second namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[1]));
+        assertTrue("third namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[2]));
+    }
+
+    @Test
+    public void namespacesWithDuplicates()
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+        KubernetesNamespacedCredentialsProvider provider =
+                new KubernetesNamespacedCredentialsProvider(new String[] {namespaces[0], namespaces[1], namespaces[1]});
+
+        Set<String> namespaces = provider.getNamespaces();
+        assertEquals("two namespaces", 2, namespaces.size());
+        assertTrue("first namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[0]));
+        assertTrue("second namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[1]));
     }
 
     private Secret[] getSecrets() {
