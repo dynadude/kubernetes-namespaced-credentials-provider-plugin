@@ -61,8 +61,19 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private static final char credNameSeparator = '_';
 
-    public KubernetesNamespacedCredentialsProvider() {
-        this(new String[] {});
+    public KubernetesNamespacedCredentialsProvider() throws ClassNotFoundException {
+        this(getNamespacesFromGlobalConfiguration());
+    }
+
+    private static String[] getNamespacesFromGlobalConfiguration() throws ClassNotFoundException {
+        Namespace[] namespaceObjects =
+                KubernetesNamespacedCredentialsProviderGlobalConfiguration.get().getNamespaces();
+        String[] namespaces = new String[namespaceObjects.length];
+        for (int i = 0; i < namespaceObjects.length; i++) {
+            namespaces[i] = namespaceObjects[i].getName();
+        }
+
+        return namespaces;
     }
 
     @DataBoundConstructor
