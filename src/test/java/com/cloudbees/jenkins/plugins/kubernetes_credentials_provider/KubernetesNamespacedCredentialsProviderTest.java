@@ -52,7 +52,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     @Test
     public void noNamespaces() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
-        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(new String[0]);
         Secret[] secrets = getSecrets();
 
         try {
@@ -144,7 +144,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
     @Test
     public void setNamespacesAndGetNamespaces()
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
-        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(new String[0]);
 
         Set<String> namespaces = provider.getNamespaces();
         assertEquals("no namespaces", 0, namespaces.size());
