@@ -6,7 +6,6 @@ import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesN
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.ExtensionList;
@@ -34,7 +33,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesNamespacedCredentialsProviderTest {
-    private static final String[] namespaces = {"test1", "test2", "test3"};
+    private static final Namespace[] namespaces = {
+        new Namespace("test1"), new Namespace("test2"), new Namespace("test3")
+    };
     private @Mock ScheduledExecutorService jenkinsTimer;
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
@@ -52,7 +53,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     @Test
     public void noNamespaces() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
-        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(new String[0]);
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
         Secret[] secrets = getSecrets();
 
         try {
@@ -61,20 +62,20 @@ public class KubernetesNamespacedCredentialsProviderTest {
         } catch (NoSuchNamespaceException e) {
         }
 
-        verifySecrets(new String[] {}, new Secret[] {}, provider);
+        verifySecrets(new Namespace[] {}, new Secret[] {}, provider);
     }
 
     @Test
     public void oneNamespace() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
         KubernetesNamespacedCredentialsProvider provider =
-                new KubernetesNamespacedCredentialsProvider(new String[] {namespaces[0]});
+                new KubernetesNamespacedCredentialsProvider(new Namespace[] {namespaces[0]});
         Secret[] secrets = getSecrets();
 
-        verifySecrets(new String[] {}, new Secret[] {}, provider);
+        verifySecrets(new Namespace[] {}, new Secret[] {}, provider);
 
         addSecretToProvider(secrets[0], namespaces[0], provider);
         secrets = getSecrets();
-        verifySecrets(new String[] {namespaces[0]}, new Secret[] {secrets[0]}, provider);
+        verifySecrets(new Namespace[] {namespaces[0]}, new Secret[] {secrets[0]}, provider);
     }
 
     @Test
@@ -106,36 +107,37 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
         secrets = getSecrets();
         removeSecretFromProvider(secrets[0], namespaces[0], provider);
-        verifySecrets(new String[] {namespaces[1], namespaces[2]}, new Secret[] {secrets[1], secrets[2]}, provider);
+        verifySecrets(new Namespace[] {namespaces[1], namespaces[2]}, new Secret[] {secrets[1], secrets[2]}, provider);
 
         secrets = getSecrets();
         removeSecretFromProvider(secrets[1], namespaces[1], provider);
         secrets = getSecrets();
-        verifySecrets(new String[] {namespaces[2]}, new Secret[] {secrets[2]}, provider);
+        verifySecrets(new Namespace[] {namespaces[2]}, new Secret[] {secrets[2]}, provider);
     }
 
-    private void addSecretToProvider(Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
+    private void addSecretToProvider(
+            Secret secret, Namespace namespace, KubernetesNamespacedCredentialsProvider provider)
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
 
         sendActionToProvider(Action.ADDED, secret, namespace, provider);
     }
 
     private void removeSecretFromProvider(
-            Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
+            Secret secret, Namespace namespace, KubernetesNamespacedCredentialsProvider provider)
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
 
         sendActionToProvider(Action.DELETED, secret, namespace, provider);
     }
 
     private void sendActionToProvider(
-            Action action, Secret secret, String namespace, KubernetesNamespacedCredentialsProvider provider)
+            Action action, Secret secret, Namespace namespace, KubernetesNamespacedCredentialsProvider provider)
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
         Map<String, KubernetesSingleNamespacedCredentialsProvider> providers = getProviders(provider);
 
-        KubernetesSingleNamespacedCredentialsProvider innerProvider = providers.get(namespace);
+        KubernetesSingleNamespacedCredentialsProvider innerProvider = providers.get(namespace.getName());
         if (innerProvider == null) {
-            throw new NoSuchNamespaceException(
-                    "namespace " + namespace + " was not found in the KubernetesNamespacedCredentialsProvider object");
+            throw new NoSuchNamespaceException("namespace " + namespace.getName()
+                    + " was not found in the KubernetesNamespacedCredentialsProvider object");
         }
 
         innerProvider.eventReceived(action, secret);
@@ -144,14 +146,15 @@ public class KubernetesNamespacedCredentialsProviderTest {
     @Test
     public void setNamespacesAndGetNamespaces()
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
-        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(new String[0]);
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider();
 
-        Set<String> namespaces = provider.getNamespaces();
+        Set<Namespace> namespaces = provider.getNamespaces();
         assertEquals("no namespaces", 0, namespaces.size());
 
         provider.setNamespaces(KubernetesNamespacedCredentialsProviderTest.namespaces);
 
         namespaces = provider.getNamespaces();
+
         assertEquals(
                 "three namespaces", KubernetesNamespacedCredentialsProviderTest.namespaces.length, namespaces.size());
         assertTrue("first namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[0]));
@@ -162,10 +165,11 @@ public class KubernetesNamespacedCredentialsProviderTest {
     @Test
     public void namespacesWithDuplicates()
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
-        KubernetesNamespacedCredentialsProvider provider =
-                new KubernetesNamespacedCredentialsProvider(new String[] {namespaces[0], namespaces[1], namespaces[1]});
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(
+                new Namespace[] {namespaces[0], namespaces[1], namespaces[1]});
 
-        Set<String> namespaces = provider.getNamespaces();
+        Set<Namespace> namespaces = provider.getNamespaces();
+
         assertEquals("two namespaces", 2, namespaces.size());
         assertTrue("first namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[0]));
         assertTrue("second namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[1]));
@@ -207,29 +211,25 @@ public class KubernetesNamespacedCredentialsProviderTest {
         return providers;
     }
 
-    private static Secret createSecret(String name, CredentialsScope scope, String namespace) {
+    private static Secret createSecret(String name, CredentialsScope scope, Namespace namespace) {
         Map<String, String> labels = Map.of(
                 "jenkins.io/credentials-scope",
                 scope == null ? "global" : scope.name().toLowerCase(Locale.ROOT));
         return createSecret(name, labels, namespace);
     }
 
-    private static Secret createSecret(String name, Map<String, String> labels, String namespace) {
-        return createSecret(name, labels, Map.of());
-    }
-
-    private static Secret createSecret(String name, Map<String, String> labels, Map<String, String> annotations) {
-        return createSecret(name, labels, annotations, "test");
+    private static Secret createSecret(String name, Map<String, String> labels, Namespace namespace) {
+        return createSecret(name, labels, Map.of(), namespace);
     }
 
     private static Secret createSecret(
-            String name, Map<String, String> labels, Map<String, String> annotations, String namespace) {
+            String name, Map<String, String> labels, Map<String, String> annotations, Namespace namespace) {
         Map<String, String> labelsCopy = new HashMap<>(labels);
         labelsCopy.put("jenkins.io/credentials-type", "usernamePassword");
 
         return new SecretBuilder()
                 .withNewMetadata()
-                .withNamespace(namespace)
+                .withNamespace(namespace.getName())
                 .withName(name)
                 .addToLabels(labelsCopy)
                 .addToAnnotations(annotations)
@@ -243,22 +243,18 @@ public class KubernetesNamespacedCredentialsProviderTest {
         return credentials.stream().anyMatch(c -> secretName.equals(((UsernamePasswordCredentialsImpl) c).getId()));
     }
 
-    private void verifySecrets(String[] namespaces, Secret[] secrets, CredentialsProvider provider) {
+    private void verifySecrets(Namespace[] namespaces, Secret[] secrets, CredentialsProvider provider) {
         List<UsernamePasswordCredentials> credentials =
                 provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
         assertEquals("credentials", secrets.length, credentials.size());
 
-        for (UsernamePasswordCredentials cred : credentials) {
-            System.out.println(((IdCredentials) cred).getId());
-        }
-
         for (int i = 0; i < secrets.length; i++) {
             Secret secret = secrets[i];
             String secretName = secret.getMetadata().getName();
-            String namespace = namespaces[i];
+            String namespaceName = namespaces[i].getName();
             assertTrue(
                     "secret " + secretName + " exists",
-                    doesSecretExistInCredentials(namespace + '_' + secretName, credentials));
+                    doesSecretExistInCredentials(namespaceName + '_' + secretName, credentials));
         }
     }
 }
