@@ -30,6 +30,7 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
+import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -46,47 +47,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import net.sf.json.JSONObject;
 import org.acegisecurity.Authentication;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.StaplerRequest;
 
 @Extension
 public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider {
 
     private static final Logger LOG = Logger.getLogger(KubernetesNamespacedCredentialsProvider.class.getName());
 
-    private Set<String> namespaces = new HashSet<String>();
+    private Set<Namespace> namespaces = new HashSet<Namespace>();
 
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
 
     private static final char credNameSeparator = '_';
 
-    public KubernetesNamespacedCredentialsProvider() throws ClassNotFoundException {
-        this(getNamespacesFromGlobalConfiguration());
-    }
-
-    private static String[] getNamespacesFromGlobalConfiguration() throws ClassNotFoundException {
-        Namespace[] namespaceObjects =
-                KubernetesNamespacedCredentialsProviderGlobalConfiguration.get().getNamespaces();
-        String[] namespaces = new String[namespaceObjects.length];
-        for (int i = 0; i < namespaceObjects.length; i++) {
-            namespaces[i] = namespaceObjects[i].getName();
-        }
-
-        return namespaces;
+    public KubernetesNamespacedCredentialsProvider() {
+        this(new Namespace[0]);
     }
 
     @DataBoundConstructor
-    public KubernetesNamespacedCredentialsProvider(String[] namespaces) {
+    public KubernetesNamespacedCredentialsProvider(Namespace[] namespaces) {
         setNamespaces(namespaces);
     }
 
-    public Set<String> getNamespaces() {
+    public Set<Namespace> getNamespaces() {
         return Collections.unmodifiableSet(namespaces);
     }
 
     @DataBoundSetter
-    public void setNamespaces(String[] namespaces) {
+    public void setNamespaces(Namespace[] namespaces) {
         providers.clear();
         resetNamespaces();
 
@@ -94,13 +87,13 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     }
 
     private void resetNamespaces() {
-        this.namespaces = new HashSet<String>();
+        this.namespaces = new HashSet<Namespace>();
     }
 
-    private void addNamespaces(String[] namespaces) {
-        for (String namespace : namespaces) {
+    private void addNamespaces(Namespace[] namespaces) {
+        for (Namespace namespace : namespaces) {
             if (this.namespaces.contains(namespace)) {
-                LOG.warning("Duplicate namespace detected: " + namespace + ". Ignoring...");
+                LOG.warning("Duplicate namespace detected: " + namespace.getName() + ". Ignoring...");
                 continue;
             }
 
@@ -110,8 +103,18 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         }
     }
 
-    private void addNamespaceToProviders(String namespace) {
-        providers.put(namespace, new KubernetesSingleNamespacedCredentialsProvider(namespace, credNameSeparator));
+    private void addNamespaceToProviders(Namespace namespace) {
+        providers.put(
+                namespace.getName(),
+                new KubernetesSingleNamespacedCredentialsProvider(namespace.getName(), credNameSeparator));
+    }
+
+    @Override
+    public boolean configure(StaplerRequest req, JSONObject json) {
+        List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("namespaces"));
+        setNamespaces(list.toArray(new Namespace[list.size()]));
+
+        return true;
     }
 
     @Override
@@ -206,6 +209,18 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         @Override
         public void close() {
             Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
+    }
+
+    @Symbol("kubernetesCredentialsNamespaces")
+    public static class DescriptorImpl extends Descriptor<CredentialsProvider> {
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getDisplayName() {
+            return Messages.KubernetesNamespacedCredentialsProvider_DisplayName();
         }
     }
 }
