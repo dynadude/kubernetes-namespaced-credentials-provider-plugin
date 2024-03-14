@@ -28,6 +28,20 @@ public class Namespace extends AbstractDescribableImpl<Namespace> {
         this.name = name;
     }
 
+    @Override
+    public boolean equals(Object namespace) {
+        if (!(namespace instanceof Namespace)) {
+            return false;
+        }
+
+        return getName().equals(((Namespace) namespace).getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return getName().hashCode();
+    }
+
     @Extension
     public static class DescriptorImpl extends Descriptor<Namespace> {
         public String getDisplayName() {
