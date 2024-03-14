@@ -3,11 +3,15 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import java.io.Serializable;
+import hudson.util.FormValidation;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
-public class Namespace extends AbstractDescribableImpl<Namespace> implements Serializable {
+public class Namespace extends AbstractDescribableImpl<Namespace> {
     private String name;
 
     @DataBoundConstructor
@@ -28,6 +32,19 @@ public class Namespace extends AbstractDescribableImpl<Namespace> implements Ser
     public static class DescriptorImpl extends Descriptor<Namespace> {
         public String getDisplayName() {
             return "";
+        }
+
+        /**
+         * Form validation for a namespace.
+         *
+         * @param value the name.
+         * @return the validation results.
+         */
+        @Restricted(NoExternalUse.class) // stapler
+        public FormValidation doCheckName(@QueryParameter String value) {
+            return StringUtils.isBlank(value)
+                    ? FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_MandatoryProperty())
+                    : FormValidation.ok();
         }
     }
 }
