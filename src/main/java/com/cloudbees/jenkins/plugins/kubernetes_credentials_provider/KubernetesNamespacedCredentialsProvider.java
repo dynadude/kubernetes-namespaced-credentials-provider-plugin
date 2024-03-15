@@ -30,6 +30,9 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
+import hudson.init.TermMilestone;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
@@ -50,6 +53,8 @@ import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 import org.acegisecurity.Authentication;
 import org.jenkinsci.Symbol;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -107,6 +112,22 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         providers.put(
                 namespace.getName(),
                 new KubernetesSingleNamespacedCredentialsProvider(namespace.getName(), credNameSeparator));
+    }
+
+    @Initializer(after = InitMilestone.PLUGINS_PREPARED, fatal = false)
+    @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
+    public void startWatchingForSecrets() {
+        for (KubernetesCredentialProvider provider : providers.values()) {
+            provider.startWatchingForSecrets();
+        }
+    }
+
+    @hudson.init.Terminator(after = TermMilestone.STARTED)
+    @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
+    public void stopWatchingForSecrets() {
+        for (KubernetesCredentialProvider provider : providers.values()) {
+            provider.stopWatchingForSecrets();
+        }
     }
 
     @Override
