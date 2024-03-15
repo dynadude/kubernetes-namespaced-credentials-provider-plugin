@@ -131,6 +131,9 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         for (KubernetesCredentialProvider provider : providers.values()) {
             provider.stopWatchingForSecrets();
         }
+
+        LOG.fine(
+                "Stopped watching for secrets in namespaces: " + getNamespaces().toString());
     }
 
     @Override
