@@ -42,6 +42,11 @@ public class Namespace extends AbstractDescribableImpl<Namespace> {
         return getName().hashCode();
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
+
     @Extension
     public static class DescriptorImpl extends Descriptor<Namespace> {
         public String getDisplayName() {
