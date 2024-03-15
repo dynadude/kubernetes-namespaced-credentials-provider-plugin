@@ -60,4 +60,13 @@ public class NamespaceTest {
 
         assertEquals(ns.hashCode(), nsName.hashCode());
     }
+
+    @Test
+    public void toStringTest() {
+        String nsName = "hello";
+
+        Namespace ns = new Namespace(nsName);
+
+        assertEquals(nsName, ns.toString());
+    }
 }
