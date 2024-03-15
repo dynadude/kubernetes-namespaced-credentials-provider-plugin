@@ -186,13 +186,17 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             this.credNameSeparator = credNameSeparator;
         }
 
+        public String getNamespace() {
+            return namespace;
+        }
+
         @Override
         KubernetesClient getKubernetesClient() {
             if (client == null) {
                 ConfigBuilder cb = new ConfigBuilder();
                 Config config = cb.build();
 
-                config.setNamespace(namespace);
+                config.setNamespace(getNamespace());
 
                 try (WithContextClassLoader ignored =
                         new WithContextClassLoader(getClass().getClassLoader())) {
@@ -222,7 +226,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             ObjectMeta metadata = s.getMetadata();
             String previousName = metadata.getName();
 
-            metadata.setName(namespace + credNameSeparator + previousName);
+            metadata.setName(getNamespace() + credNameSeparator + previousName);
         }
     }
 
