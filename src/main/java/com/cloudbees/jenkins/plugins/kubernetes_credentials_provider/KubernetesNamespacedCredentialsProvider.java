@@ -120,6 +120,9 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         for (KubernetesCredentialProvider provider : providers.values()) {
             provider.startWatchingForSecrets();
         }
+
+        LOG.fine(
+                "Started watching for secrets in namespaces: " + getNamespaces().toString());
     }
 
     @hudson.init.Terminator(after = TermMilestone.STARTED)
