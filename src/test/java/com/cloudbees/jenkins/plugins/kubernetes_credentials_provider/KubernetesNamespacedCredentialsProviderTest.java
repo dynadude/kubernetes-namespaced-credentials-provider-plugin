@@ -166,7 +166,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
     public void namespacesWithDuplicates()
             throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(
-                new Namespace[] {namespaces[0], namespaces[1], namespaces[1]});
+                new Namespace[] {namespaces[0], namespaces[1], new Namespace(namespaces[1].getName())});
 
         Set<Namespace> namespaces = provider.getNamespaces();
 
