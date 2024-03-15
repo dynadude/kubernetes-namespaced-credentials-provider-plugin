@@ -177,6 +177,28 @@ public class KubernetesNamespacedCredentialsProviderTest {
         assertTrue("second namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[1]));
     }
 
+    @Test
+    public void namespacesInProviders()
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
+
+        Map<String, KubernetesSingleNamespacedCredentialsProvider> providers = getProviders(provider);
+
+        assertEquals("three providers", 3, providers.keySet().size());
+        assertEquals(
+                "first namespace",
+                namespaces[0].getName(),
+                providers.get(namespaces[0].getName()).getNamespace());
+        assertEquals(
+                "second namespace",
+                namespaces[1].getName(),
+                providers.get(namespaces[1].getName()).getNamespace());
+        assertEquals(
+                "thord namespace",
+                namespaces[2].getName(),
+                providers.get(namespaces[2].getName()).getNamespace());
+    }
+
     private Secret[] getSecrets() {
         return new Secret[] {
             createSecret("s1", (CredentialsScope) null, namespaces[0]),
