@@ -66,7 +66,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     private static final char credNameSeparator = '_';
 
     public KubernetesNamespacedCredentialsProvider() {
-        this(new Namespace[0]);
+        load();
     }
 
     @DataBoundConstructor
@@ -113,6 +113,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     public boolean configure(StaplerRequest req, JSONObject json) {
         List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("namespaces"));
         setNamespaces(list.toArray(new Namespace[list.size()]));
+
+        save();
 
         return true;
     }
