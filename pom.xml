@@ -39,7 +39,7 @@
   <description>Provides a credentials store backed by Kubernetes (which allows for multiple namespaces).</description>
   <url>https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin</url>
 
-  <inceptionYear>2018</inceptionYear>
+  <inceptionYear>2024</inceptionYear>
 
   <licenses>
     <license>
