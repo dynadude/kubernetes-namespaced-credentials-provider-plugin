@@ -194,7 +194,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
                 namespaces[1].getName(),
                 providers.get(namespaces[1].getName()).getNamespace());
         assertEquals(
-                "thord namespace",
+                "third namespace",
                 namespaces[2].getName(),
                 providers.get(namespaces[2].getName()).getNamespace());
     }
