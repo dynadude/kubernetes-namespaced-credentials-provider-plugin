@@ -38,10 +38,9 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -178,7 +177,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         private char credNameSeparator;
 
         @Nullable
-        private KubernetesClient client = null;
+        private NamespacedKubernetesClient client = null;
 
         KubernetesSingleNamespacedCredentialsProvider(String namespace, char credNameSeparator) {
             this.namespace = namespace;
@@ -191,18 +190,18 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         }
 
         @Override
-        KubernetesClient getKubernetesClient() {
-            if (client == null) {
-                ConfigBuilder cb = new ConfigBuilder();
-                Config config = cb.build();
-
-                config.setNamespace(getNamespace());
-
-                try (WithContextClassLoader ignored =
-                        new WithContextClassLoader(getClass().getClassLoader())) {
-                    client = new KubernetesClientBuilder().withConfig(config).build();
-                }
+        KubernetesClient getKubernetesClient() throws KubernetesClientException {
+            if (client != null) {
+                return client;
             }
+
+            KubernetesClient superClient = super.getKubernetesClient();
+            if (!(superClient instanceof NamespacedKubernetesClient)) {
+                throw new KubernetesClientException(
+                        "Kubernetes Client returned by KubernetesCredentialProvider is not an instance of KubernetesClientImpl");
+            }
+
+            client = ((NamespacedKubernetesClient) superClient).inNamespace(getNamespace());
 
             return client;
         }
@@ -227,21 +226,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             String previousName = metadata.getName();
 
             metadata.setName(getNamespace() + credNameSeparator + previousName);
-        }
-    }
-
-    private static class WithContextClassLoader implements AutoCloseable {
-
-        private final ClassLoader previousClassLoader;
-
-        public WithContextClassLoader(ClassLoader classLoader) {
-            this.previousClassLoader = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(classLoader);
-        }
-
-        @Override
-        public void close() {
-            Thread.currentThread().setContextClassLoader(previousClassLoader);
         }
     }
 
