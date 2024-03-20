@@ -25,7 +25,6 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -207,7 +206,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         }
 
         @Override
-        IdCredentials convertSecret(Secret s) {
+        KubernetesSourcedCredential convertSecret(Secret s) {
             addNamespaceNameToSecret(s);
             return super.convertSecret(s);
         }
