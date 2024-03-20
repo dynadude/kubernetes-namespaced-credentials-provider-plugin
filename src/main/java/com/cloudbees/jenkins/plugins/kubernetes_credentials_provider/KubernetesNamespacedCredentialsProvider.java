@@ -25,6 +25,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -35,6 +36,7 @@ import hudson.init.TermMilestone;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
+import hudson.model.ModelObject;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -65,6 +67,12 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     private Set<Namespace> namespaces = new HashSet<Namespace>();
 
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
+
+    /**
+     * A map storing credential scores scoped to ModelObjects, each ModelObject has
+     * its own credential store
+     */
+    private final Map<ModelObject, KubernetesNamespacedCredentialsStore> lazyStoreCache = new HashMap<>();
 
     private static final char credNameSeparator = '_';
 
@@ -168,6 +176,15 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             Class<C> type, Item item, Authentication authentication, List<DomainRequirement> domainRequirements) {
         // we do not support domain requirements
         return getCredentials(type, item, authentication);
+    }
+
+    @Override
+    public CredentialsStore getStore(ModelObject object) {
+        if (object instanceof ItemGroup<?>) {
+            lazyStoreCache.putIfAbsent(object, new KubernetesNamespacedCredentialsStore(this, (ItemGroup<?>) object));
+            return lazyStoreCache.get(object);
+        }
+        return null;
     }
 
     static class KubernetesSingleNamespacedCredentialsProvider extends KubernetesCredentialProvider {
