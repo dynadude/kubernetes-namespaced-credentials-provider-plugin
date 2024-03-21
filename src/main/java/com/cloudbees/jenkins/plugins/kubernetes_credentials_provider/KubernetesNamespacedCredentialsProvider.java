@@ -68,6 +68,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
 
+    private boolean arePluginsPrepared = false;
+
     /**
      * A map storing credential scores scoped to ModelObjects, each ModelObject has
      * its own credential store
@@ -95,6 +97,10 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         resetNamespaces();
 
         addNamespaces(namespaces);
+
+        if (arePluginsPrepared) {
+            startWatchingForSecrets();
+        }
     }
 
     private void resetNamespaces() {
@@ -129,6 +135,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
         LOG.fine(
                 "Started watching for secrets in namespaces: " + getNamespaces().toString());
+
+        arePluginsPrepared = true;
     }
 
     @hudson.init.Terminator(after = TermMilestone.STARTED)
