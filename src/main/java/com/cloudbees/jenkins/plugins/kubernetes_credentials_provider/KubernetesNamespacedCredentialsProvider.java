@@ -67,7 +67,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private Set<Namespace> namespaces = new HashSet<Namespace>();
 
-    private Map<String, KubernetesCredentialProvider> providers = new HashMap<String, KubernetesCredentialProvider>();
+    private transient Map<String, KubernetesCredentialProvider> providers =
+            new HashMap<String, KubernetesCredentialProvider>();
 
     private boolean arePluginsPrepared = false;
 
@@ -81,6 +82,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     public KubernetesNamespacedCredentialsProvider() {
         load();
+
+        setNamespaces(namespaces);
     }
 
     @DataBoundConstructor
