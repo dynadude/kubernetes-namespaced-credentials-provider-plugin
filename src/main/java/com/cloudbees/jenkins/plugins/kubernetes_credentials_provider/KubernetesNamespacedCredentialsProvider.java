@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,6 +90,10 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     public Set<Namespace> getNamespaces() {
         return Collections.unmodifiableSet(namespaces);
+    }
+
+    public void setNamespaces(Collection<Namespace> namespaces) {
+        setNamespaces(namespaces.toArray(new Namespace[namespaces.size()]));
     }
 
     @DataBoundSetter
