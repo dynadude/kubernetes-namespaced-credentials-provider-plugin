@@ -70,7 +70,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     private transient Map<String, KubernetesCredentialProvider> providers =
             new HashMap<String, KubernetesCredentialProvider>();
 
-    private boolean arePluginsPrepared = false;
+    private transient boolean arePluginsPrepared = false;
 
     /**
      * A map storing credential scores scoped to ModelObjects, each ModelObject has
