@@ -150,12 +150,12 @@ public class KubernetesNamespacedCredentialsProviderTest {
         KubernetesNamespacedCredentialsProvider provider =
                 new KubernetesNamespacedCredentialsProvider(new Namespace[0]);
 
-        Set<Namespace> namespaces = provider.getNamespaces();
+        Set<Namespace> namespaces = provider.getAdditionalNamespaces();
         assertEquals("no namespaces", 0, namespaces.size());
 
-        provider.setNamespaces(KubernetesNamespacedCredentialsProviderTest.namespaces);
+        provider.setAdditionalNamespaces(KubernetesNamespacedCredentialsProviderTest.namespaces);
 
-        namespaces = provider.getNamespaces();
+        namespaces = provider.getAdditionalNamespaces();
 
         assertEquals(
                 "three namespaces", KubernetesNamespacedCredentialsProviderTest.namespaces.length, namespaces.size());
@@ -170,7 +170,7 @@ public class KubernetesNamespacedCredentialsProviderTest {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(
                 new Namespace[] {namespaces[0], namespaces[1], new Namespace(namespaces[1].getName())});
 
-        Set<Namespace> namespaces = provider.getNamespaces();
+        Set<Namespace> namespaces = provider.getAdditionalNamespaces();
 
         assertEquals("two namespaces", 2, namespaces.size());
         assertTrue("first namespace", namespaces.contains(KubernetesNamespacedCredentialsProviderTest.namespaces[0]));
