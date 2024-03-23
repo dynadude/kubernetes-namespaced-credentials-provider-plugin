@@ -61,6 +61,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
 @Extension
+@Symbol("kubernetes")
 public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider {
 
     private static final Logger LOG = Logger.getLogger(KubernetesNamespacedCredentialsProvider.class.getName());
@@ -261,7 +262,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         }
     }
 
-    @Symbol("kubernetesCredentialsNamespaces")
     public static class DescriptorImpl extends Descriptor<CredentialsProvider> {
 
         /**
