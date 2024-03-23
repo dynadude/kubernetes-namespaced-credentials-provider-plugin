@@ -96,6 +96,16 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         return Collections.unmodifiableSet(additionalNamespaces);
     }
 
+    @Override
+    public boolean configure(StaplerRequest req, JSONObject json) {
+        List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("additionalNamespaces"));
+        setAdditionalNamespaces(list);
+
+        save();
+
+        return true;
+    }
+
     public void setAdditionalNamespaces(Collection<Namespace> additionalNamespaces) {
         setAdditionalNamespaces(additionalNamespaces.toArray(new Namespace[additionalNamespaces.size()]));
     }
@@ -157,16 +167,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
         LOG.fine("Stopped watching for secrets in namespaces: "
                 + getAdditionalNamespaces().toString());
-    }
-
-    @Override
-    public boolean configure(StaplerRequest req, JSONObject json) {
-        List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("additionalNamespaces"));
-        setAdditionalNamespaces(list);
-
-        save();
-
-        return true;
     }
 
     @Override
