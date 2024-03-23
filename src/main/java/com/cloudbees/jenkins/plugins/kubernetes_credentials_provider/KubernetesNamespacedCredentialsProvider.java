@@ -27,7 +27,6 @@ import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.init.InitMilestone;
@@ -180,12 +179,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         }
 
         return allCredentials;
-    }
-
-    @Override
-    @NonNull
-    public <C extends Credentials> List<C> getCredentials(Class<C> type, Item item, Authentication authentication) {
-        return getCredentials(type, item.getParent(), authentication);
     }
 
     @Override
