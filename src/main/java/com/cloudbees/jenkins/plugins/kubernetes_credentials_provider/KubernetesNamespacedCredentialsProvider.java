@@ -36,6 +36,7 @@ import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
+import hudson.util.FormValidation;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -98,9 +99,26 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
         List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("additionalNamespaces"));
+        if (!areNamespaceNamesValid(list)) {
+            return false;
+        }
+
         setAdditionalNamespaces(list);
 
         save();
+
+        return true;
+    }
+
+    private boolean areNamespaceNamesValid(Collection<Namespace> namespaces) {
+        Namespace.DescriptorImpl descriptor = new Namespace.DescriptorImpl();
+        for (Namespace namespace : namespaces) {
+            if (descriptor.doCheckName(namespace.getName()).equals(FormValidation.ok())) {
+                continue;
+            }
+
+            return false;
+        }
 
         return true;
     }
