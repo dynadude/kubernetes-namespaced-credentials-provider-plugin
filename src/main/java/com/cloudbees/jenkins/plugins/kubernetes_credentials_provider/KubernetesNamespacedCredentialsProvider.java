@@ -170,6 +170,13 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     @Override
     public <C extends Credentials> List<C> getCredentials(
+            Class<C> type, Item item, Authentication authentication, List<DomainRequirement> domainRequirements) {
+        // we do not support domain requirements
+        return getCredentials(type, item, authentication);
+    }
+
+    @Override
+    public <C extends Credentials> List<C> getCredentials(
             Class<C> type, ItemGroup itemGroup, Authentication authentication) {
         List<C> allCredentials = new ArrayList<C>();
 
@@ -179,13 +186,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         }
 
         return allCredentials;
-    }
-
-    @Override
-    public <C extends Credentials> List<C> getCredentials(
-            Class<C> type, Item item, Authentication authentication, List<DomainRequirement> domainRequirements) {
-        // we do not support domain requirements
-        return getCredentials(type, item, authentication);
     }
 
     @Override
