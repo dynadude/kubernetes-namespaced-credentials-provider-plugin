@@ -158,7 +158,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
         List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("namespaces"));
-        setNamespaces(list.toArray(new Namespace[list.size()]));
+        setNamespaces(list);
 
         save();
 
