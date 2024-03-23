@@ -65,7 +65,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private static final Logger LOG = Logger.getLogger(KubernetesNamespacedCredentialsProvider.class.getName());
 
-    private Set<Namespace> namespaces = new HashSet<Namespace>();
+    private Set<Namespace> additionalNamespaces = new HashSet<Namespace>();
 
     private transient Map<String, KubernetesCredentialProvider> providers =
             new HashMap<String, KubernetesCredentialProvider>();
@@ -83,48 +83,48 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     public KubernetesNamespacedCredentialsProvider() {
         load();
 
-        setNamespaces(namespaces);
+        setAdditionalNamespaces(additionalNamespaces);
     }
 
     @DataBoundConstructor
-    public KubernetesNamespacedCredentialsProvider(Namespace[] namespaces) {
-        setNamespaces(namespaces);
+    public KubernetesNamespacedCredentialsProvider(Namespace[] additionalNamespaces) {
+        setAdditionalNamespaces(additionalNamespaces);
     }
 
-    public Set<Namespace> getNamespaces() {
-        return Collections.unmodifiableSet(namespaces);
+    public Set<Namespace> getAdditionalNamespaces() {
+        return Collections.unmodifiableSet(additionalNamespaces);
     }
 
-    public void setNamespaces(Collection<Namespace> namespaces) {
-        setNamespaces(namespaces.toArray(new Namespace[namespaces.size()]));
+    public void setAdditionalNamespaces(Collection<Namespace> additionalNamespaces) {
+        setAdditionalNamespaces(additionalNamespaces.toArray(new Namespace[additionalNamespaces.size()]));
     }
 
     @DataBoundSetter
-    public void setNamespaces(Namespace[] namespaces) {
+    public void setAdditionalNamespaces(Namespace[] additionalNamespaces) {
         providers.clear();
-        resetNamespaces();
+        resetAdditionalNamespaces();
 
-        addNamespaces(namespaces);
+        addNamespaces(additionalNamespaces);
 
         if (arePluginsPrepared) {
             startWatchingForSecrets();
         }
     }
 
-    private void resetNamespaces() {
-        this.namespaces = new HashSet<Namespace>();
+    private void resetAdditionalNamespaces() {
+        this.additionalNamespaces = new HashSet<Namespace>();
     }
 
     private void addNamespaces(Namespace[] namespaces) {
         for (Namespace namespace : namespaces) {
-            if (this.namespaces.contains(namespace)) {
+            if (this.additionalNamespaces.contains(namespace)) {
                 LOG.warning("Duplicate namespace detected: " + namespace.getName() + ". Ignoring...");
                 continue;
             }
 
             addNamespaceToProviders(namespace);
 
-            this.namespaces.add(namespace);
+            this.additionalNamespaces.add(namespace);
         }
     }
 
@@ -141,8 +141,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             provider.startWatchingForSecrets();
         }
 
-        LOG.fine(
-                "Started watching for secrets in namespaces: " + getNamespaces().toString());
+        LOG.fine("Started watching for secrets in namespaces: "
+                + getAdditionalNamespaces().toString());
 
         arePluginsPrepared = true;
     }
@@ -154,14 +154,14 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             provider.stopWatchingForSecrets();
         }
 
-        LOG.fine(
-                "Stopped watching for secrets in namespaces: " + getNamespaces().toString());
+        LOG.fine("Stopped watching for secrets in namespaces: "
+                + getAdditionalNamespaces().toString());
     }
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
-        List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("namespaces"));
-        setNamespaces(list);
+        List<Namespace> list = req.bindJSONToList(Namespace.class, json.get("additionalNamespaces"));
+        setAdditionalNamespaces(list);
 
         save();
 

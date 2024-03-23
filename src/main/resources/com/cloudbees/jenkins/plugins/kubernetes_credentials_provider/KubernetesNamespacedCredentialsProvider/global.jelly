@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:section title="Kubernetes Credentials Namespaces">
-        <f:repeatable field="namespaces"
+    <f:section title="Kubernetes Credentials Additional Namespaces">
+        <f:repeatable field="additionalNamespaces"
                         add="${%Add Namespace}">
             <br/>
             <f:entry field="name">
