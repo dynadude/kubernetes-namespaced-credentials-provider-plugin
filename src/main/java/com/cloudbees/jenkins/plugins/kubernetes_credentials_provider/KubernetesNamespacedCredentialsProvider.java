@@ -225,15 +225,15 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     static class KubernetesSingleNamespacedCredentialsProvider extends KubernetesCredentialProvider {
         private String namespace;
 
-        private char credNameSeparator;
+        private char separator;
 
         @Nullable
         private NamespacedKubernetesClient client = null;
 
-        KubernetesSingleNamespacedCredentialsProvider(String namespace, char credNameSeparator) {
+        KubernetesSingleNamespacedCredentialsProvider(String namespace, char separator) {
             this.namespace = namespace;
 
-            this.credNameSeparator = credNameSeparator;
+            this.separator = separator;
         }
 
         public String getNamespace() {
@@ -276,7 +276,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             ObjectMeta metadata = s.getMetadata();
             String previousName = metadata.getName();
 
-            metadata.setName(getNamespace() + credNameSeparator + previousName);
+            metadata.setName(getNamespace() + separator + previousName);
         }
     }
 }
