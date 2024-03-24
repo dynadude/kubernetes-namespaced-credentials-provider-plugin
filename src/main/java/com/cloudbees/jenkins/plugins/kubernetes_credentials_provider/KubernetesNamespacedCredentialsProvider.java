@@ -159,7 +159,14 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     private void addNamespaceToProviders(Namespace namespace) {
         providers.put(
                 namespace.getName(),
-                new KubernetesSingleNamespacedCredentialsProvider(namespace.getName(), credNameSeparator));
+                new KubernetesSingleNamespacedCredentialsProvider(namespace.getName(), getSeparator()));
+    }
+
+    /**
+     * Can be overriden by subclasses to change the credentials name separator.
+     */
+    public char getSeparator() {
+        return credNameSeparator;
     }
 
     @Initializer(after = InitMilestone.PLUGINS_PREPARED, fatal = false)
