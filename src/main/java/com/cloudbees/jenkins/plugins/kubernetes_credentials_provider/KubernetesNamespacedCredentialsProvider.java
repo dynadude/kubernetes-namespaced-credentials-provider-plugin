@@ -32,7 +32,6 @@ import hudson.Extension;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.init.TermMilestone;
-import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
@@ -271,17 +270,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             String previousName = metadata.getName();
 
             metadata.setName(getNamespace() + credNameSeparator + previousName);
-        }
-    }
-
-    public static class DescriptorImpl extends Descriptor<CredentialsProvider> {
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getDisplayName() {
-            return Messages.KubernetesNamespacedCredentialsProvider_DisplayName();
         }
     }
 }
