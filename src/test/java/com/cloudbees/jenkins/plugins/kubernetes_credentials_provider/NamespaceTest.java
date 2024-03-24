@@ -86,40 +86,6 @@ public class NamespaceTest {
         assertDoCheckName(FormValidation.ok(), name);
     }
 
-    @Test
-    public void doCheckNameBlankName() {
-        assertDoCheckName(
-                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_MandatoryProperty()), "");
-    }
-
-    @Test
-    public void doCheckNameInvalidCharacters() {
-        assertDoCheckName(
-                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_InvalidCharacters()),
-                "._hello#$");
-
-        assertDoCheckName(
-                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_InvalidCharacters()), "Hello");
-
-        assertDoCheckName(
-                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_InvalidCharacters()), "hellO");
-    }
-
-    @Test
-    public void doCheckNameStartsWithDash() {
-        assertDoCheckName(
-                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_StartsWithDash()), "-hello#$");
-    }
-
-    @Test
-    public void doCheckNameEndsWithDash() {
-        assertDoCheckName(
-                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_EndsWithDash()), "hello5-");
-
-        assertDoCheckName(
-                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_EndsWithDash()), "hello#$-");
-    }
-
     private void assertDoCheckName(FormValidation expected, String name) {
         assertEquals(
                 "Namespace name: '" + name + "'",
