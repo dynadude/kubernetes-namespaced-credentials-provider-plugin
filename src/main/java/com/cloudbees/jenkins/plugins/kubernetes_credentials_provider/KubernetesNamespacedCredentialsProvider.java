@@ -79,7 +79,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
      */
     private final Map<ModelObject, KubernetesNamespacedCredentialsStore> lazyStoreCache = new HashMap<>();
 
-    private static final char credNameSeparator = '_';
+    private static final char separator = '_';
 
     public KubernetesNamespacedCredentialsProvider() {
         load();
@@ -166,7 +166,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
      * Can be overriden by subclasses to change the credentials name separator.
      */
     public char getSeparator() {
-        return credNameSeparator;
+        return separator;
     }
 
     @Initializer(after = InitMilestone.PLUGINS_PREPARED, fatal = false)
