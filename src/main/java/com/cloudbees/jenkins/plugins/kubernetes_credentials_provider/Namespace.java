@@ -4,7 +4,6 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -61,51 +60,7 @@ public class Namespace extends AbstractDescribableImpl<Namespace> {
          */
         @Restricted(NoExternalUse.class) // stapler
         public FormValidation doCheckName(@QueryParameter String value) {
-            if (StringUtils.isBlank(value)) {
-                return FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_MandatoryProperty());
-            }
-
-            if (StringUtils.startsWith(value, "-")) {
-                return FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_StartsWithDash());
-            }
-
-            if (StringUtils.endsWith(value, "-")) {
-                return FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_EndsWithDash());
-            }
-
-            if (doesStringContainInvalidCharacters(value)) {
-                return FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_InvalidCharacters());
-            }
-
-            return FormValidation.ok();
-        }
-
-        private boolean doesStringContainInvalidCharacters(String string) {
-            for (char character : string.toCharArray()) {
-                if (isCharacterValid(character)) {
-                    continue;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private boolean isCharacterValid(char character) {
-            if (Character.isLowerCase(character)) {
-                return true;
-            }
-
-            if (Character.isDigit(character)) {
-                return true;
-            }
-
-            if (character == '-') {
-                return true;
-            }
-
-            return false;
+            return NamespaceUtils.checkName(value);
         }
     }
 }
