@@ -294,4 +294,11 @@ public class KubernetesNamespacedCredentialsProviderTest {
                     doesSecretExistInCredentials(namespaceName + '_' + secretName, credentials));
         }
     }
+
+    @Test
+    public void getSeparatorTest() {
+        KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
+
+        assertEquals("separator", '_', provider.getSeparator());
+    }
 }
