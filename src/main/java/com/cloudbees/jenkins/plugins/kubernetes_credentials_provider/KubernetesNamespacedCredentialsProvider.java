@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 import org.acegisecurity.Authentication;
@@ -69,7 +70,7 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     private Set<Namespace> additionalNamespaces = new HashSet<Namespace>();
 
     private transient Map<String, KubernetesCredentialProvider> providers =
-            new HashMap<String, KubernetesCredentialProvider>();
+            new ConcurrentHashMap<String, KubernetesCredentialProvider>();
 
     private transient boolean arePluginsPrepared = false;
 
