@@ -111,9 +111,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     }
 
     private boolean areNamespaceNamesValid(Collection<Namespace> namespaces) {
-        Namespace.DescriptorImpl descriptor = new Namespace.DescriptorImpl();
         for (Namespace namespace : namespaces) {
-            if (descriptor.doCheckName(namespace.getName()).equals(FormValidation.ok())) {
+            if (NamespaceUtils.checkName(namespace.getName()).equals(FormValidation.ok())) {
                 continue;
             }
 
