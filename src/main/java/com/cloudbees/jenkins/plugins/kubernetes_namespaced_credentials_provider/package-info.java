@@ -26,4 +26,4 @@
  */
 @edu.umd.cs.findbugs.annotations.ReturnValuesAreNonnullByDefault
 @edu.umd.cs.findbugs.annotations.DefaultAnnotation(edu.umd.cs.findbugs.annotations.NonNull.class)
-package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
+package com.cloudbees.jenkins.plugins.kubernetes_namespaced_credentials_provider;

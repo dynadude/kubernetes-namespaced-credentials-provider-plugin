@@ -1,4 +1,4 @@
-package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
+package com.cloudbees.jenkins.plugins.kubernetes_namespaced_credentials_provider;
 
 import static org.junit.Assert.*;
 

@@ -21,8 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
+package com.cloudbees.jenkins.plugins.kubernetes_namespaced_credentials_provider;
 
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesCredentialProvider;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;

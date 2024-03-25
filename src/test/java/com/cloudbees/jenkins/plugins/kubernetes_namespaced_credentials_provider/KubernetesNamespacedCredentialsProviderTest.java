@@ -1,9 +1,10 @@
-package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
+package com.cloudbees.jenkins.plugins.kubernetes_namespaced_credentials_provider;
 
 import static org.junit.Assert.*;
 
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesNamespacedCredentialsProvider.KubernetesSingleNamespacedCredentialsProvider;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCredentialConverter;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
+import com.cloudbees.jenkins.plugins.kubernetes_namespaced_credentials_provider.KubernetesNamespacedCredentialsProvider.KubernetesSingleNamespacedCredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
