@@ -306,15 +306,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             return super.convertSecret(s);
         }
 
-        @Override
-        public void eventReceived(Action action, Secret secret) {
-            if (action == Action.DELETED) {
-                addNamespaceNameToSecret(secret);
-            }
-
-            super.eventReceived(action, secret);
-        }
-
         private void addNamespaceNameToSecret(Secret s) {
             ObjectMeta metadata = s.getMetadata();
             String previousName = metadata.getName();
