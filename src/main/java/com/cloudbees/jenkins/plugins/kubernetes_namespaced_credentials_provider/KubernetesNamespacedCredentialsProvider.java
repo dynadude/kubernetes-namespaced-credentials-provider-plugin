@@ -40,8 +40,11 @@ import hudson.util.FormValidation;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import java.io.InvalidObjectException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -82,14 +85,16 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private static final char separator = '_';
 
-    public KubernetesNamespacedCredentialsProvider() {
+    public KubernetesNamespacedCredentialsProvider()
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
         load();
 
         setAdditionalNamespaces(additionalNamespaces);
     }
 
     @DataBoundConstructor
-    public KubernetesNamespacedCredentialsProvider(Namespace[] additionalNamespaces) {
+    public KubernetesNamespacedCredentialsProvider(Namespace[] additionalNamespaces)
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
         setAdditionalNamespaces(additionalNamespaces);
     }
 
@@ -104,11 +109,16 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             return false;
         }
 
-        setAdditionalNamespaces(list);
+        try {
+            setAdditionalNamespaces(list);
 
-        save();
+            save();
 
-        return true;
+            return true;
+        } catch (NoSuchMethodException | IllegalAccessException | InvalidObjectException | NoSuchFieldException e) {
+            LOG.severe("Unable to set additional namespaces: " + e.getMessage());
+            return false;
+        }
     }
 
     private boolean areNamespaceNamesValid(Collection<Namespace> namespaces) {
@@ -123,12 +133,14 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         return true;
     }
 
-    public void setAdditionalNamespaces(Collection<Namespace> additionalNamespaces) {
+    public void setAdditionalNamespaces(Collection<Namespace> additionalNamespaces)
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
         setAdditionalNamespaces(additionalNamespaces.toArray(new Namespace[additionalNamespaces.size()]));
     }
 
     @DataBoundSetter
-    public void setAdditionalNamespaces(Namespace[] additionalNamespaces) {
+    public void setAdditionalNamespaces(Namespace[] additionalNamespaces)
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
         providers.clear();
         resetAdditionalNamespaces();
 
@@ -143,7 +155,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         this.additionalNamespaces = new HashSet<Namespace>();
     }
 
-    private void addNamespaces(Namespace[] namespaces) {
+    private void addNamespaces(Namespace[] namespaces)
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
         for (Namespace namespace : namespaces) {
             if (this.additionalNamespaces.contains(namespace)) {
                 LOG.warning("Duplicate namespace detected: " + namespace.getName() + ". Ignoring...");
@@ -156,7 +169,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         }
     }
 
-    private void addNamespaceToProviders(Namespace namespace) {
+    private void addNamespaceToProviders(Namespace namespace)
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
         providers.put(
                 namespace.getName(),
                 new KubernetesSingleNamespacedCredentialsProvider(namespace.getName(), getSeparator()));
@@ -230,31 +244,60 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
         @Nullable
         private NamespacedKubernetesClient client = null;
 
-        KubernetesSingleNamespacedCredentialsProvider(String namespace, char separator) {
+        KubernetesSingleNamespacedCredentialsProvider(String namespace, char separator)
+                throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
             this.namespace = namespace;
+            setNamespaceInSuper();
 
             this.separator = separator;
         }
 
-        public String getNamespace() {
-            return namespace;
+        private void setNamespaceInSuper()
+                throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
+            NamespacedKubernetesClient client = getSuperClient();
+
+            setSuperClient(client.inNamespace(namespace));
         }
 
-        @Override
-        KubernetesClient getKubernetesClient() throws KubernetesClientException {
-            if (client != null) {
-                return client;
+        private NamespacedKubernetesClient getSuperClient()
+                throws NoSuchMethodException, IllegalAccessException, InvalidObjectException {
+            Method getKubernetesClientMethod = this.getClass().getSuperclass().getDeclaredMethod("getKubernetesClient");
+
+            getKubernetesClientMethod.setAccessible(true);
+
+            Object clientObject = null;
+            try {
+                clientObject = getKubernetesClientMethod.invoke(this);
+            } catch (InvocationTargetException e) {
+                throw new IllegalAccessException(
+                        "The 'getKubernetesClient' method of KubernetesCredentialProvider is not correctly set to accessible");
             }
 
-            KubernetesClient superClient = super.getKubernetesClient();
-            if (!(superClient instanceof NamespacedKubernetesClient)) {
-                throw new KubernetesClientException(
-                        "Kubernetes Client returned by KubernetesCredentialProvider is not an instance of KubernetesClientImpl");
+            if (!(clientObject instanceof NamespacedKubernetesClient)) {
+                throw new InvalidObjectException(
+                        "The 'getKubernetesClient' method of KubernetesCredentialProvider is not of type NamespacedKubernetesClient");
             }
 
-            client = ((NamespacedKubernetesClient) superClient).inNamespace(getNamespace());
+            NamespacedKubernetesClient client = (NamespacedKubernetesClient) clientObject;
 
             return client;
+        }
+
+        private void setSuperClient(KubernetesClient client) throws NoSuchFieldException, IllegalAccessException {
+            Field clientField = this.getClass().getSuperclass().getDeclaredField("client");
+
+            clientField.setAccessible(true);
+
+            try {
+                clientField.set(this, client);
+            } catch (IllegalAccessException e) {
+                throw new IllegalAccessException(
+                        "The 'client' field of KubernetesCredentialProvider is not correctly set to accessible");
+            }
+        }
+
+        public String getNamespace() {
+            return namespace;
         }
 
         @Override
