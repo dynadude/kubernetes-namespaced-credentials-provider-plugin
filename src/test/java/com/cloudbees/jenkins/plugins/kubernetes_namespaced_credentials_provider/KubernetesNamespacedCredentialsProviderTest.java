@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import java.io.InvalidObjectException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +69,9 @@ public class KubernetesNamespacedCredentialsProviderTest {
     }
 
     @Test
-    public void oneNamespace() throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, Exception {
+    public void oneNamespace()
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException,
+                    NoSuchMethodException, IllegalAccessException, InvalidObjectException, InvocationTargetException {
         KubernetesNamespacedCredentialsProvider provider =
                 new KubernetesNamespacedCredentialsProvider(new Namespace[] {namespaces[0]});
         Secret[] secrets = getSecrets();
@@ -82,7 +85,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     @Test
     public void allNamespaces()
-            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException,
+                    NoSuchMethodException, IllegalAccessException, InvalidObjectException, InvocationTargetException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
         Secret[] secrets = getSecrets();
 
@@ -96,7 +100,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     @Test
     public void deleteSecrets()
-            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException,
+                    NoSuchMethodException, IllegalAccessException, InvalidObjectException, InvocationTargetException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
         Secret[] secrets = getSecrets();
 
@@ -147,7 +152,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     @Test
     public void setNamespacesAndGetNamespaces()
-            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException,
+                    NoSuchMethodException, IllegalAccessException, InvalidObjectException, InvocationTargetException {
         KubernetesNamespacedCredentialsProvider provider =
                 new KubernetesNamespacedCredentialsProvider(new Namespace[0]);
 
@@ -167,7 +173,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     @Test
     public void namespacesWithDuplicates()
-            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException,
+                    NoSuchMethodException, IllegalAccessException, InvalidObjectException, InvocationTargetException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(
                 new Namespace[] {namespaces[0], namespaces[1], new Namespace(namespaces[1].getName())});
 
@@ -180,7 +187,8 @@ public class KubernetesNamespacedCredentialsProviderTest {
 
     @Test
     public void namespacesInProviders()
-            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException {
+            throws NoSuchFieldException, IllegalAccessException, InvalidObjectException, NoSuchNamespaceException,
+                    NoSuchMethodException, IllegalAccessException, InvalidObjectException, InvocationTargetException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
 
         Map<String, KubernetesSingleNamespacedCredentialsProvider> providers = getProviders(provider);
@@ -284,7 +292,9 @@ public class KubernetesNamespacedCredentialsProviderTest {
     }
 
     @Test
-    public void getSeparatorTest() {
+    public void getSeparatorTest()
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException,
+                    InvocationTargetException {
         KubernetesNamespacedCredentialsProvider provider = new KubernetesNamespacedCredentialsProvider(namespaces);
 
         assertEquals("separator", '_', provider.getSeparator());
