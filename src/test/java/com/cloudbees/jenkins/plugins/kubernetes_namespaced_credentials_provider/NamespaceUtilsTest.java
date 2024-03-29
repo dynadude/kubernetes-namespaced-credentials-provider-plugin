@@ -28,6 +28,25 @@ public class NamespaceUtilsTest {
     }
 
     @Test
+    public void checkNameLength() {
+        assertCheckName(
+                FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_TooLong()),
+                getStringOfLength(NamespaceUtils.NAMESPACE_NAME_MAX_LENGTH + 1, '&'));
+
+        assertCheckName(FormValidation.ok(), getStringOfLength(NamespaceUtils.NAMESPACE_NAME_MAX_LENGTH, 'a'));
+    }
+
+    private String getStringOfLength(int length, char character) {
+        String output = "";
+
+        for (int i = 0; i < length; i++) {
+            output += Character.toString(character);
+        }
+
+        return output;
+    }
+
+    @Test
     public void checkNameInvalidCharacters() {
         assertCheckName(
                 FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_InvalidCharacters()),
