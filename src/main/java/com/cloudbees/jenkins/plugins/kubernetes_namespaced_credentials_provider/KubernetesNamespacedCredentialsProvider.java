@@ -85,7 +85,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     private static final char separator = '_';
 
     public KubernetesNamespacedCredentialsProvider()
-            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException,
+                    InvocationTargetException {
         load();
 
         setAdditionalNamespaces(additionalNamespaces);
@@ -93,7 +94,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     @DataBoundConstructor
     public KubernetesNamespacedCredentialsProvider(Namespace[] additionalNamespaces)
-            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException,
+                    InvocationTargetException {
         setAdditionalNamespaces(additionalNamespaces);
     }
 
@@ -114,7 +116,11 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             save();
 
             return true;
-        } catch (NoSuchMethodException | IllegalAccessException | InvalidObjectException | NoSuchFieldException e) {
+        } catch (NoSuchMethodException
+                | IllegalAccessException
+                | InvalidObjectException
+                | NoSuchFieldException
+                | InvocationTargetException e) {
             LOG.severe("Unable to set additional namespaces: " + e.getMessage());
             return false;
         }
@@ -133,13 +139,15 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     }
 
     public void setAdditionalNamespaces(Collection<Namespace> additionalNamespaces)
-            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException,
+                    NoSuchMethodException, InvocationTargetException {
         setAdditionalNamespaces(additionalNamespaces.toArray(new Namespace[additionalNamespaces.size()]));
     }
 
     @DataBoundSetter
     public void setAdditionalNamespaces(Namespace[] additionalNamespaces)
-            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
+            throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException,
+                    NoSuchMethodException, InvocationTargetException {
         providers.clear();
         resetAdditionalNamespaces();
 
@@ -184,9 +192,12 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     @Initializer(after = InitMilestone.PLUGINS_PREPARED, fatal = false)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
-    public void startWatchingForSecrets() {
+    public void startWatchingForSecrets()
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Method startMethod = KubernetesCredentialProvider.class.getDeclaredMethod("startWatchingForSecrets");
+
         for (KubernetesCredentialProvider provider : providers.values()) {
-            provider.startWatchingForSecrets();
+            startMethod.invoke(provider);
         }
 
         LOG.fine("Started watching for secrets in namespaces: "
@@ -197,9 +208,12 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     @hudson.init.Terminator(after = TermMilestone.STARTED)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
-    public void stopWatchingForSecrets() {
+    public void stopWatchingForSecrets()
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Method stopMethod = KubernetesCredentialProvider.class.getDeclaredMethod("stopWatchingForSecrets");
+
         for (KubernetesCredentialProvider provider : providers.values()) {
-            provider.stopWatchingForSecrets();
+            stopMethod.invoke(provider);
         }
 
         LOG.fine("Stopped watching for secrets in namespaces: "
