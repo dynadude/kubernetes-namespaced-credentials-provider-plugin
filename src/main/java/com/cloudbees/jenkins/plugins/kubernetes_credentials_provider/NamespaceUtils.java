@@ -1,10 +1,9 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
-import hudson.model.AbstractDescribableImpl;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
 
-public class NamespaceUtils extends AbstractDescribableImpl<Namespace> {
+public class NamespaceUtils {
     public static final int NAMESPACE_NAME_MAX_LENGTH = 63;
 
     /**
