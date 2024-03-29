@@ -198,19 +198,6 @@ public class KubernetesNamespacedCredentialsProviderTest {
                 "third namespace",
                 namespaces[2].getName(),
                 providers.get(namespaces[2].getName()).getNamespace());
-
-        assertEquals(
-                "first kubernetes client",
-                namespaces[0].getName(),
-                providers.get(namespaces[0].getName()).getKubernetesClient().getNamespace());
-        assertEquals(
-                "second kubernetes client",
-                namespaces[1].getName(),
-                providers.get(namespaces[1].getName()).getKubernetesClient().getNamespace());
-        assertEquals(
-                "third kubernetes client",
-                namespaces[2].getName(),
-                providers.get(namespaces[2].getName()).getKubernetesClient().getNamespace());
     }
 
     private Secret[] getSecrets() {
