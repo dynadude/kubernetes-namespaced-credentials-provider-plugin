@@ -37,8 +37,6 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.util.FormValidation;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import java.io.InvalidObjectException;
@@ -298,19 +296,6 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
         public String getNamespace() {
             return namespace;
-        }
-
-        @Override
-        KubernetesSourcedCredential convertSecret(Secret s) {
-            addNamespaceNameToSecret(s);
-            return super.convertSecret(s);
-        }
-
-        private void addNamespaceNameToSecret(Secret s) {
-            ObjectMeta metadata = s.getMetadata();
-            String previousName = metadata.getName();
-
-            metadata.setName(getNamespace() + separator + previousName);
         }
     }
 }
