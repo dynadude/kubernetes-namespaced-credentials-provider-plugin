@@ -5,6 +5,8 @@ import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
 
 public class NamespaceUtils extends AbstractDescribableImpl<Namespace> {
+    public static final int NAMESPACE_NAME_MAX_LENGTH = 63;
+
     /**
      * Form validation for a namespace.
      *
@@ -14,6 +16,10 @@ public class NamespaceUtils extends AbstractDescribableImpl<Namespace> {
     public static FormValidation checkName(String name) {
         if (StringUtils.isBlank(name)) {
             return FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_MandatoryProperty());
+        }
+
+        if (name.length() > NAMESPACE_NAME_MAX_LENGTH) {
+            return FormValidation.error(Messages.KubernetesNamespacedCredentialsProvider_TooLong());
         }
 
         if (StringUtils.startsWith(name, "-")) {
