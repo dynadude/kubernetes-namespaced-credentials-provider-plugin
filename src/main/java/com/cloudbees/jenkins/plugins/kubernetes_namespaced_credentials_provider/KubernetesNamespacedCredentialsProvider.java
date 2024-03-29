@@ -27,6 +27,7 @@ import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesC
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
+import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
@@ -235,6 +236,9 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     }
 
     static class KubernetesSingleNamespacedCredentialsProvider extends KubernetesCredentialProvider {
+        private static final Logger LOG =
+                Logger.getLogger(KubernetesSingleNamespacedCredentialsProvider.class.getName());
+
         private String namespace;
 
         private char separator;
@@ -292,6 +296,33 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
                 throw new IllegalAccessException(
                         "The 'client' field of KubernetesCredentialProvider is not correctly set to accessible");
             }
+        }
+
+        @Override
+        public <C extends Credentials> List<C> getCredentials(
+                Class<C> type, ItemGroup itemGroup, Authentication authentication) {
+            List<C> allCredentials = super.getCredentials(type, itemGroup, authentication);
+
+            for (C cred : allCredentials) {
+                String id = ((IdCredentials) cred).getId();
+                if (shouldAddNamespaceToId(id)) {
+                    try {
+                        CredentialsIdChanger.changeId(cred, getIdWithNamespace(id));
+                    } catch (Exception e) {
+                        LOG.severe("Failed to change id for credentials '" + id + "': " + e.getMessage());
+                    }
+                }
+            }
+
+            return allCredentials;
+        }
+
+        private boolean shouldAddNamespaceToId(String id) {
+            return !(id.startsWith(namespace + separator));
+        }
+
+        private String getIdWithNamespace(String id) {
+            return namespace + separator + id;
         }
 
         public String getNamespace() {
