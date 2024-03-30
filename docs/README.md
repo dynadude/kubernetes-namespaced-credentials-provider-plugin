@@ -47,7 +47,7 @@ Credentials are deleted automatically when the secret is deleted from Kubernetes
 ### Viewing credentials
 
 Once added the credentials will be visible in Jenkins under the `/credentials/` page.
-Any credentials that are loaded from Kubernetes can be identified by the Kubernetes provider icon in the view.
+Any credentials that are loaded from Kubernetes can be identified by the fact that they are stored in the Kubernetes Namespaced Credentials Store.
 
 ## Using the credentials inside Jenkins
 
