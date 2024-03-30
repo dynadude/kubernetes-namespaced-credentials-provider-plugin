@@ -14,7 +14,7 @@ The plugin supports most common credential types and defines an [`extension poin
 
 - Jenkins must be running in a kubernetes cluster
 - The pod running Jenkins must have a service account with a role that sets the following:
-  - get/watch/list permissions for `secrets`[^AWS] 
+  - get/watch/list permissions for `secrets`[^AWS] in all additional namespaces specified
 
 [^AWS]: it is reported that running in KOPS on AWS you will also need permissions to get/watch/list `configmaps`
 
