@@ -18,7 +18,10 @@ The plugin supports most common credential types and defines an [`extension poin
 
 [^AWS]: it is reported that running in KOPS on AWS you will also need permissions to get/watch/list `configmaps`
 
-Because granting these permissions for secrets is not something that should be done lightly it is highly advised for security reasons that you both create a unique service account to run Jenkins as, and run Jenkins in a unique namespace.
+#### WARNING
+This plugin is much less secure than the normal [Kubernetes Credentials Provider](https://plugins.jenkins.io/kubernetes-credentials-provider) plugin, due to the fact that it requires permissions for multiple namespaces.
+<br/>
+Because of this fact, it is advisable to enforce a specific naming convention for secrets intended to be used as Jenkins Credentials (such as `jenkins-my-cred-name`), and give jenkins permissions only to secrets that match this convention
 
 ## Managing credentials
 
