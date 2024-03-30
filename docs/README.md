@@ -19,6 +19,7 @@ The plugin supports most common credential types and defines an [`extension poin
 [^AWS]: it is reported that running in KOPS on AWS you will also need permissions to get/watch/list `configmaps`
 
 #### WARNING
+
 This plugin is much less secure than the normal [Kubernetes Credentials Provider](https://plugins.jenkins.io/kubernetes-credentials-provider) plugin, due to the fact that it requires permissions for multiple namespaces.
 <br/>
 Because of this fact, it is advisable to enforce a specific naming convention for secrets intended to be used as Jenkins Credentials (such as `jenkins-my-cred-name`), and give jenkins permissions only to secrets that match this convention
@@ -42,7 +43,7 @@ Credentials are updated automatically when changes are made to the Kubernetes se
 
 ### Deleting credentials
 
-Credentials are deleted automatically when the secret is deleted from Kubernetes. 
+Credentials are deleted automatically when the secret is deleted from Kubernetes.
 
 ### Viewing credentials
 
@@ -51,14 +52,14 @@ Any credentials that are loaded from Kubernetes can be identified by the fact th
 
 ## Using the credentials inside Jenkins
 
-To use credentials in a pipeline you do not need to do anything special, you access them just as you would for credentials stored in Jenkins. 
+To use credentials in a pipeline you do not need to do anything special, you access them just as you would for credentials stored in Jenkins.
 
 for example, if you had the follwing Secret defined in Kubernetes:
 {% highlight yaml linenos %}
 {% include_relative examples/username-pass.yaml %}
 {% endhighlight %}
 
-you could use it via the [Credentials Binding plugin](https://plugins.jenkins.io/credentials-binding) 
+you could use it via the [Credentials Binding plugin](https://plugins.jenkins.io/credentials-binding)
 
 {% highlight groovy %}
 withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass',
@@ -77,7 +78,7 @@ git credentialsId: 'another-test-usernamepass', url: 'https://github.com/foo/bar
 # Issue reporting
 
 Any issues should be reporting in the main [Jenkins JIRA tracker](https://issues.jenkins-ci.org).
-The issue tracker is not a help forum, for help please use [IRC](https://jenkins.io/chat/) or the [user mailing list](https://groups.google.com/forum/#!forum/jenkinsci-users) 
+The issue tracker is not a help forum, for help please use [IRC](https://jenkins.io/chat/) or the [user mailing list](https://groups.google.com/forum/#!forum/jenkinsci-users)
 
 # Releases and Change logs
 
