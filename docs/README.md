@@ -81,8 +81,7 @@ The issue tracker is not a help forum, for help please use [IRC](https://jenkins
 
 # Releases and Change logs
 
-The [release notes](https://github.com/jenkinsci/kubernetes-credentials-provider-plugin/releases) are managed in GitHub. 
-The latest release will be visible in the Jenkins Update center approximatly 8 hours after a release.
+The [release notes](https://github.com/dynadude/kubernetes-namespaced-credentials-provider-plugin/releases) are managed in GitHub.
 
 # Developing
 
