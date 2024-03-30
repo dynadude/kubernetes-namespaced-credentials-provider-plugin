@@ -8,6 +8,8 @@ The *Kubernetes Credentials Provider* is a [Jenkins](https://jenkins.io) plugin 
 
 The plugin supports most common credential types and defines an [`extension point`](https://jenkins.io/doc/developer/extensions/kubernetes-credentials-provider/) that can be implemented by other plugins to add support for custom Credential types. 
 
+Credentials created by this plugin are named `my-namespace-name_my-secret-name`.
+
 # Using
 
 ### Pre-requisites
