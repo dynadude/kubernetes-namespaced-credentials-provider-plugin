@@ -6,6 +6,8 @@ permalink: /
 
 The *Kubernetes Namespaced Credentials Provider* is a [Jenkins](https://jenkins.io) plugin to enable the retrieval of [Credentials](https://plugins.jenkins.io/credentials) stored as [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) in multiple namespaces.
 
+Credentials created by this plugin are named `my-namespace-name_my-secret-name`.
+
 # Using
 
 ### Pre-requisites
