@@ -26,6 +26,26 @@ This plugin is much less secure than the normal [Kubernetes Credentials Provider
 <br/>
 Because of this fact, it is advisable to enforce a specific naming convention for secrets intended to be used as Jenkins Credentials (such as `jenkins-my-cred-name`), and give jenkins permissions only to secrets that match this convention
 
+## Managing additional namespaces
+
+### Through the UI
+
+Go to `Manage Jenkins` -> `System`, and look for the `Kubernetes Credentials Additional Namespaces` section.
+<br/>
+There, you can add and remove namespaces.
+
+### Through Jenkins Configuration as Code
+
+Create a `configScript` with the content:
+
+```yaml
+credentials:
+  kubernetes:
+    additionalNamespaces:
+    - name: "my-first-namespace"
+    - name: "my-second-namespace"
+```
+
 ## Managing credentials
 
 ### Adding credentials
