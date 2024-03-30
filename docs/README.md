@@ -83,19 +83,19 @@ for example, if you had the follwing Secret defined in Kubernetes:
 
 you could use it via the [Credentials Binding plugin](https://plugins.jenkins.io/credentials-binding)
 
-{% highlight groovy %}
-withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass',
-                                  usernameVariable: 'USER', 
+```groovy
+withCredentials([usernamePassword(credentialsId: 'my-first-namespace_another-test-usernamepass',
+                                  usernameVariable: 'USER',
                                   passwordVariable: 'PASS')]) {
   sh 'curl -u $USER:$PASS https://some-api/'
 }
-{% endhighlight %}
+```
 
 or by passing the credentialsId directly to the step requiring a credential:
 
-{% highlight groovy %}
-git credentialsId: 'another-test-usernamepass', url: 'https://github.com/foo/bar'
-{% endhighlight %}
+```groovy
+git credentialsId: 'my-second-namespace_another-test-usernamepass', url: 'https://github.com/foo/bar'
+```
 
 # Issue reporting
 
