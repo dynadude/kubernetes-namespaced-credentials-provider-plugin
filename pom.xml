@@ -32,7 +32,7 @@
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>kubernetes-namespaced-credentials-provider</artifactId>
-  <version>${revision}.${changelist}</version>
+  <version>1.0.1</version>
   <packaging>hpi</packaging>
 
   <name>Kubernetes Namespaced Credentials Provider</name>
@@ -63,8 +63,6 @@
   </scm>
 
   <properties>
-    <revision>1</revision>
-    <changelist>999999-SNAPSHOT</changelist>
     <jenkins.version>2.414.1</jenkins.version>
     <bom>2.414.x</bom>
     <junit5.version>5.10.0</junit5.version>
