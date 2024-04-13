@@ -16,9 +16,9 @@ import org.acegisecurity.Authentication;
 public class KubernetesSingleNamespacedCredentialsProvider extends CredentialsProvider implements Watcher<Secret> {
     private static final Logger LOG = Logger.getLogger(KubernetesSingleNamespacedCredentialsProvider.class.getName());
 
-    private String namespace;
+    private final String namespace;
 
-    private char separator;
+    private final char separator;
 
     private final KubernetesCredentialsProviderProxy proxy;
 
