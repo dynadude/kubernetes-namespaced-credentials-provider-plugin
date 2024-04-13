@@ -23,13 +23,10 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_namespaced_credentials_provider;
 
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesCredentialProvider;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
-import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
@@ -38,12 +35,8 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.util.FormValidation;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import java.io.InvalidObjectException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,8 +64,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
 
     private Set<Namespace> additionalNamespaces = new HashSet<Namespace>();
 
-    private transient Map<String, KubernetesCredentialProvider> providers =
-            new ConcurrentHashMap<String, KubernetesCredentialProvider>();
+    private transient Map<String, KubernetesSingleNamespacedCredentialsProvider> providers =
+            new ConcurrentHashMap<String, KubernetesSingleNamespacedCredentialsProvider>();
 
     private transient boolean arePluginsPrepared = false;
 
@@ -194,10 +187,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
     public void startWatchingForSecrets()
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method startMethod = KubernetesCredentialProvider.class.getDeclaredMethod("startWatchingForSecrets");
-
-        for (KubernetesCredentialProvider provider : providers.values()) {
-            startMethod.invoke(provider);
+        for (KubernetesSingleNamespacedCredentialsProvider provider : providers.values()) {
+            provider.startWatchingForSecrets();
         }
 
         LOG.fine("Started watching for secrets in namespaces: "
@@ -210,10 +201,8 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
     public void stopWatchingForSecrets()
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method stopMethod = KubernetesCredentialProvider.class.getDeclaredMethod("stopWatchingForSecrets");
-
-        for (KubernetesCredentialProvider provider : providers.values()) {
-            stopMethod.invoke(provider);
+        for (KubernetesSingleNamespacedCredentialsProvider provider : providers.values()) {
+            provider.stopWatchingForSecrets();
         }
 
         LOG.fine("Stopped watching for secrets in namespaces: "
@@ -247,100 +236,5 @@ public class KubernetesNamespacedCredentialsProvider extends CredentialsProvider
             return lazyStoreCache.get(object);
         }
         return null;
-    }
-
-    static class KubernetesSingleNamespacedCredentialsProvider extends KubernetesCredentialProvider {
-        private static final Logger LOG =
-                Logger.getLogger(KubernetesSingleNamespacedCredentialsProvider.class.getName());
-
-        private String namespace;
-
-        private char separator;
-
-        @Nullable
-        private NamespacedKubernetesClient client = null;
-
-        KubernetesSingleNamespacedCredentialsProvider(String namespace, char separator)
-                throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
-            this.namespace = namespace;
-            setNamespaceInSuper();
-
-            this.separator = separator;
-        }
-
-        private void setNamespaceInSuper()
-                throws NoSuchMethodException, IllegalAccessException, InvalidObjectException, NoSuchFieldException {
-            NamespacedKubernetesClient client = getSuperClient();
-
-            setSuperClient(client.inNamespace(namespace));
-        }
-
-        private NamespacedKubernetesClient getSuperClient()
-                throws NoSuchMethodException, IllegalAccessException, InvalidObjectException {
-            Method getKubernetesClientMethod = this.getClass().getSuperclass().getDeclaredMethod("getKubernetesClient");
-
-            getKubernetesClientMethod.setAccessible(true);
-
-            Object clientObject = null;
-            try {
-                clientObject = getKubernetesClientMethod.invoke(this);
-            } catch (InvocationTargetException e) {
-                throw new IllegalAccessException(
-                        "The 'getKubernetesClient' method of KubernetesCredentialProvider is not correctly set to accessible");
-            }
-
-            if (!(clientObject instanceof NamespacedKubernetesClient)) {
-                throw new InvalidObjectException(
-                        "The 'getKubernetesClient' method of KubernetesCredentialProvider is not of type NamespacedKubernetesClient");
-            }
-
-            NamespacedKubernetesClient client = (NamespacedKubernetesClient) clientObject;
-
-            return client;
-        }
-
-        private void setSuperClient(KubernetesClient client) throws NoSuchFieldException, IllegalAccessException {
-            Field clientField = this.getClass().getSuperclass().getDeclaredField("client");
-
-            clientField.setAccessible(true);
-
-            try {
-                clientField.set(this, client);
-            } catch (IllegalAccessException e) {
-                throw new IllegalAccessException(
-                        "The 'client' field of KubernetesCredentialProvider is not correctly set to accessible");
-            }
-        }
-
-        @Override
-        public <C extends Credentials> List<C> getCredentials(
-                Class<C> type, ItemGroup itemGroup, Authentication authentication) {
-            List<C> allCredentials = super.getCredentials(type, itemGroup, authentication);
-
-            for (C cred : allCredentials) {
-                String id = ((IdCredentials) cred).getId();
-                if (shouldAddNamespaceToId(id)) {
-                    try {
-                        CredentialsIdChanger.changeId(cred, getIdWithNamespace(id));
-                    } catch (Exception e) {
-                        LOG.severe("Failed to change id for credentials '" + id + "': " + e.getMessage());
-                    }
-                }
-            }
-
-            return allCredentials;
-        }
-
-        private boolean shouldAddNamespaceToId(String id) {
-            return !(id.startsWith(namespace + separator));
-        }
-
-        private String getIdWithNamespace(String id) {
-            return namespace + separator + id;
-        }
-
-        public String getNamespace() {
-            return namespace;
-        }
     }
 }
